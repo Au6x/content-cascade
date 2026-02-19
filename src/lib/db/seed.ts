@@ -8,7 +8,9 @@ import {
 } from "./schema";
 import type { PlatformConfig } from "./schema";
 
-const client = postgres(process.env.DATABASE_URL!);
+const connectionString = process.env.DATABASE_URL!;
+const isPooler = connectionString.includes(":6543");
+const client = postgres(connectionString, { prepare: isPooler ? false : true });
 const db = drizzle(client);
 
 // ─── Platform Definitions ────────────────────────────────

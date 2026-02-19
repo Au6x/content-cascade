@@ -1,21 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-import fs from "fs/promises";
+import { getImageUrl } from "@/lib/storage";
 
+/**
+ * Legacy image route — redirects to Supabase Storage public URL.
+ * Kept for backwards compatibility with existing /api/images/ references.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const segments = (await params).path;
 
-  // Expected: /api/images/{derivativeId}/{filename}
   if (segments.length !== 2) {
     return NextResponse.json({ error: "Invalid path" }, { status: 400 });
   }
 
   const [derivativeId, filename] = segments;
 
-  // Sanitize to prevent directory traversal
   if (
     derivativeId.includes("..") ||
     filename.includes("..") ||
@@ -24,27 +25,6 @@ export async function GET(
     return NextResponse.json({ error: "Invalid path" }, { status: 400 });
   }
 
-  const filePath = path.join(
-    process.cwd(),
-    "storage",
-    "images",
-    derivativeId,
-    filename
-  );
-
-  const ext = path.extname(filename).toLowerCase();
-  const contentType =
-    ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : "image/png";
-
-  try {
-    const fileBuffer = await fs.readFile(filePath);
-    return new NextResponse(fileBuffer, {
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    });
-  } catch {
-    return NextResponse.json({ error: "Image not found" }, { status: 404 });
-  }
+  const publicUrl = getImageUrl(derivativeId, filename);
+  return NextResponse.redirect(publicUrl, 301);
 }

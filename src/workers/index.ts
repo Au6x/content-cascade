@@ -3,8 +3,16 @@ import { Worker } from "bullmq";
 import { getRedisConnectionOptions } from "../lib/queue/connection";
 import { processCascadeJob } from "./cascade-worker";
 import type { CascadeJobData } from "../lib/queue/cascade";
+import { ensureBucket } from "../lib/storage";
 
 console.log("Starting Content Cascade worker...");
+
+// Ensure Supabase storage bucket exists
+ensureBucket().then(() => {
+  console.log("[storage] Bucket ready");
+}).catch((err) => {
+  console.warn("[storage] Bucket init warning:", err.message);
+});
 
 const worker = new Worker<CascadeJobData>(
   "cascade",
