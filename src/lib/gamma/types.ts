@@ -17,7 +17,11 @@ export type GammaGenerationRequest = {
   exportAs: "pdf";
   cardSplit?: "auto" | "inputTextBreaks";
   additionalInstructions?: string;
-  imageOptions?: { source: "noImages" | "aiGenerated"; style?: string };
+  imageOptions?: {
+    source: "noImages" | "aiGenerated" | "pexels" | "webFreeToUseCommercially" | "unsplash";
+    model?: string;
+    style?: string;
+  };
   cardOptions?: { dimensions: GammaDimension };
   textOptions?: { amount?: "brief" | "medium"; tone?: string };
 };
