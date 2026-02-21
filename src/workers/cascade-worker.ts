@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "../lib/db";
 import {
   contentSources,
@@ -8,7 +8,7 @@ import {
   contentTemplates,
   brandProfiles,
 } from "../lib/db/schema";
-import type { ContentExtraction, DerivativeContent } from "../lib/db/schema";
+import type { DerivativeContent } from "../lib/db/schema";
 import { extractContent } from "../lib/ai/extract";
 import { generateDerivative } from "../lib/ai/generate";
 import { getVisualSpec } from "../lib/gamma/specs";
@@ -17,8 +17,52 @@ import type { GammaVisualSpec } from "../lib/gamma/types";
 import type { CascadeJobData, CascadeJobProgress } from "../lib/queue/cascade";
 import type { Job } from "bullmq";
 
-const CONCURRENCY_LIMIT = 5; // Max parallel text AI calls
-const IMAGE_CONCURRENCY = 2; // Max parallel image generation calls
+const CONCURRENCY_LIMIT = 5; // Max parallel Gemini text AI calls
+const IMAGE_CONCURRENCY = parseInt(process.env.IMAGE_CONCURRENCY ?? "3", 10);
+
+// ─── Async Bounded-Concurrency Pool ──────────────────────
+//
+// Fire-and-forget enqueue pattern with drain() to wait for
+// all tasks. Used to run Gamma image generation in parallel
+// with Gemini text generation.
+
+class ImagePool {
+  private running = 0;
+  private readonly waiters: Array<() => void> = [];
+  private readonly active = new Set<Promise<void>>();
+
+  constructor(private readonly concurrency: number) {}
+
+  enqueue(fn: () => Promise<void>): void {
+    const task = this.execute(fn);
+    this.active.add(task);
+    task.finally(() => this.active.delete(task));
+  }
+
+  private async execute(fn: () => Promise<void>): Promise<void> {
+    if (this.running >= this.concurrency) {
+      await new Promise<void>((resolve) => this.waiters.push(resolve));
+    }
+    this.running++;
+    try {
+      await fn();
+    } catch {
+      // Errors must be handled inside fn
+    } finally {
+      this.running--;
+      const next = this.waiters.shift();
+      if (next) next();
+    }
+  }
+
+  async drain(): Promise<void> {
+    while (this.active.size > 0) {
+      await Promise.allSettled([...this.active]);
+    }
+  }
+}
+
+// ─── Main Pipeline ───────────────────────────────────────
 
 export async function processCascadeJob(
   job: Job<CascadeJobData>
@@ -152,8 +196,20 @@ export async function processCascadeJob(
       vocabulary: brandProfile?.vocabulary ?? { preferred: [], avoided: [] },
     };
 
-    // 5. Generate derivatives in parallel batches
-    let completedCount = 0;
+    // 5. Generate text + images in PARALLEL
+    //
+    // As each text derivative is generated, its image generation is
+    // immediately enqueued into the ImagePool. Gamma runs concurrently
+    // with remaining Gemini text generation.
+
+    const imagePool = new ImagePool(IMAGE_CONCURRENCY);
+    let completedTextCount = 0;
+    let completedImageCount = 0;
+    let totalImageTasks = 0;
+
+    console.log(
+      `[cascade] Pipeline: text concurrency=${CONCURRENCY_LIMIT}, image concurrency=${IMAGE_CONCURRENCY} (parallel)`
+    );
 
     for (let i = 0; i < tasks.length; i += CONCURRENCY_LIMIT) {
       const batch = tasks.slice(i, i + CONCURRENCY_LIMIT);
@@ -182,22 +238,92 @@ export async function processCascadeJob(
         )
       );
 
-      // Save results to DB
+      // Save results to DB and enqueue image generation
       for (let j = 0; j < results.length; j++) {
         const result = results[j];
         const task = batch[j];
 
         if (result.status === "fulfilled") {
-          await db.insert(derivatives).values({
-            sourceId,
-            jobId,
-            brandId: source.brandId ?? null,
-            templateId: task.template.id,
-            platformId: task.platformId,
-            variationIndex: task.variationIndex,
-            content: result.value,
-            status: "draft",
-          });
+          // Insert and capture the new derivative ID
+          const [inserted] = await db
+            .insert(derivatives)
+            .values({
+              sourceId,
+              jobId,
+              brandId: source.brandId ?? null,
+              templateId: task.template.id,
+              platformId: task.platformId,
+              variationIndex: task.variationIndex,
+              content: result.value,
+              status: "draft",
+            })
+            .returning({ id: derivatives.id });
+
+          // Check if this derivative needs image generation
+          const spec = getVisualSpec(task.template.slug);
+          if (spec.shouldGenerate) {
+            totalImageTasks++;
+            const derivativeId = inserted.id;
+            const content = result.value;
+            const gammaSpec = spec as GammaVisualSpec;
+
+            // Fire-and-forget into the image pool
+            imagePool.enqueue(async () => {
+              try {
+                const request = gammaSpec.buildRequest(content, {
+                  title: source.title,
+                  pillar: source.pillar,
+                  variationIndex: task.variationIndex,
+                });
+
+                if (!request) {
+                  return;
+                }
+
+                const allImageUrls = await generateAndSaveVisuals(
+                  request,
+                  derivativeId
+                );
+
+                const updatedContent: DerivativeContent = {
+                  ...content,
+                  imageUrls: allImageUrls,
+                  imageGenerationStatus: "completed",
+                };
+
+                await db
+                  .update(derivatives)
+                  .set({ content: updatedContent, updatedAt: new Date() })
+                  .where(eq(derivatives.id, derivativeId));
+              } catch (err) {
+                const errMsg =
+                  err instanceof Error ? err.message : "Image generation failed";
+                console.error(
+                  `Visual rendering failed for derivative ${derivativeId}:`,
+                  errMsg
+                );
+                await db
+                  .update(derivatives)
+                  .set({
+                    content: {
+                      ...content,
+                      imageGenerationStatus: "failed",
+                      imageGenerationError: errMsg,
+                    },
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(derivatives.id, derivativeId));
+              } finally {
+                completedImageCount++;
+                await updateCombinedProgress(job, jobId, {
+                  completedText: completedTextCount,
+                  totalDerivatives,
+                  completedImages: completedImageCount,
+                  totalImages: totalImageTasks,
+                });
+              }
+            });
+          }
         } else {
           // Save error derivative so user can see what failed
           await db.insert(derivatives).values({
@@ -215,159 +341,43 @@ export async function processCascadeJob(
           });
         }
 
-        completedCount++;
+        completedTextCount++;
       }
 
-      const progress = Math.round(15 + (completedCount / totalDerivatives) * 80);
-
-      await db
-        .update(cascadeJobs)
-        .set({ completedDerivatives: completedCount })
-        .where(eq(cascadeJobs.id, jobId));
-
-      await reportProgress(job, {
-        stage: "generating",
-        progress,
-        completedDerivatives: completedCount,
+      // Update progress after each text batch
+      await updateCombinedProgress(job, jobId, {
+        completedText: completedTextCount,
         totalDerivatives,
-        currentPlatform: batch[0]?.platformName,
+        completedImages: completedImageCount,
+        totalImages: totalImageTasks,
       });
     }
 
-    // 6. Render visuals for eligible derivatives (Gamma)
+    // All text generation complete. Wait for remaining image tasks.
+    console.log(
+      `[${new Date().toISOString()}] Text generation complete (${completedTextCount}/${totalDerivatives}). Waiting for ${totalImageTasks - completedImageCount} remaining image tasks...`
+    );
+
     await db
       .update(cascadeJobs)
       .set({ status: "imaging" })
       .where(eq(cascadeJobs.id, jobId));
 
-    const createdDerivatives = await db.query.derivatives.findMany({
-      where: eq(derivatives.jobId, jobId),
-      with: { template: true },
-    });
+    await imagePool.drain();
 
-    const imageableDerivsWithSpecs = createdDerivatives
-      .map((d) => {
-        const spec = getVisualSpec(d.template.slug);
-        if (!spec.shouldGenerate) return null;
-        return { derivative: d, spec: spec as GammaVisualSpec };
-      })
-      .filter(Boolean) as Array<{
-        derivative: (typeof createdDerivatives)[0];
-        spec: GammaVisualSpec;
-      }>;
+    console.log(
+      `[${new Date().toISOString()}] Image generation complete: ${completedImageCount}/${totalImageTasks}`
+    );
 
-    const totalImageTasks = imageableDerivsWithSpecs.length;
-    let completedImageTasks = 0;
-
-    if (totalImageTasks > 0) {
-      console.log(
-        `[${new Date().toISOString()}] Generating visuals for ${totalImageTasks} derivatives via Gamma...`
-      );
-
-      await reportProgress(job, {
-        stage: "generating_images",
-        progress: 90,
-        completedDerivatives: completedCount,
-        totalDerivatives,
-        completedImages: 0,
-        totalImages: totalImageTasks,
-      });
-
-      for (
-        let i = 0;
-        i < imageableDerivsWithSpecs.length;
-        i += IMAGE_CONCURRENCY
-      ) {
-        const batch = imageableDerivsWithSpecs.slice(
-          i,
-          i + IMAGE_CONCURRENCY
-        );
-
-        const results = await Promise.allSettled(
-          batch.map(async ({ derivative, spec }) => {
-            const content = derivative.content as DerivativeContent;
-            const request = spec.buildRequest(content, {
-              title: source.title,
-              pillar: source.pillar,
-              variationIndex: derivative.variationIndex,
-            });
-
-            if (!request) return [];
-
-            const allImageUrls = await generateAndSaveVisuals(
-              request,
-              derivative.id
-            );
-
-            const updatedContent: DerivativeContent = {
-              ...content,
-              imageUrls: allImageUrls,
-              imageGenerationStatus: "completed",
-            };
-
-            await db
-              .update(derivatives)
-              .set({
-                content: updatedContent,
-                updatedAt: new Date(),
-              })
-              .where(eq(derivatives.id, derivative.id));
-
-            return allImageUrls;
-          })
-        );
-
-        for (let j = 0; j < results.length; j++) {
-          const result = results[j];
-          if (result.status === "rejected") {
-            const { derivative } = batch[j];
-            const content = derivative.content as DerivativeContent;
-            await db
-              .update(derivatives)
-              .set({
-                content: {
-                  ...content,
-                  imageGenerationStatus: "failed",
-                  imageGenerationError:
-                    result.reason?.message || "Image generation failed",
-                },
-                updatedAt: new Date(),
-              })
-              .where(eq(derivatives.id, derivative.id));
-            console.error(
-              `Visual rendering failed for derivative ${derivative.id}:`,
-              result.reason?.message
-            );
-          }
-          completedImageTasks++;
-        }
-
-        const imageProgress = Math.round(
-          90 + (completedImageTasks / Math.max(totalImageTasks, 1)) * 8
-        );
-
-        await reportProgress(job, {
-          stage: "generating_images",
-          progress: imageProgress,
-          completedDerivatives: completedCount,
-          totalDerivatives,
-          completedImages: completedImageTasks,
-          totalImages: totalImageTasks,
-        });
-      }
-
-      console.log(
-        `[${new Date().toISOString()}] Image generation complete: ${completedImageTasks}/${totalImageTasks}`
-      );
-    }
-
-    // 7. Mark complete
+    // 6. Mark complete
     await db
       .update(cascadeJobs)
       .set({
         status: "completed",
         progress: 100,
-        completedDerivatives: completedCount,
+        completedDerivatives: completedTextCount,
+        completedImages: completedImageCount,
+        totalImages: totalImageTasks,
         completedAt: new Date(),
       })
       .where(eq(cascadeJobs.id, jobId));
@@ -380,8 +390,10 @@ export async function processCascadeJob(
     await reportProgress(job, {
       stage: "completed",
       progress: 100,
-      completedDerivatives: completedCount,
+      completedDerivatives: completedTextCount,
       totalDerivatives,
+      completedImages: completedImageCount,
+      totalImages: totalImageTasks,
     });
   } catch (error) {
     const errorMessage =
@@ -411,6 +423,60 @@ export async function processCascadeJob(
 
     throw error;
   }
+}
+
+// ─── Progress Helpers ────────────────────────────────────
+
+async function updateCombinedProgress(
+  job: Job<CascadeJobData>,
+  jobId: string,
+  state: {
+    completedText: number;
+    totalDerivatives: number;
+    completedImages: number;
+    totalImages: number;
+  }
+): Promise<void> {
+  const { completedText, totalDerivatives, completedImages, totalImages } =
+    state;
+
+  // Text progress: 15% to 55% of the bar
+  const textFraction =
+    totalDerivatives > 0 ? completedText / totalDerivatives : 1;
+  const textProgress = 15 + textFraction * 40; // 15-55
+
+  // Image progress: 55% to 98% of the bar (only contributes when images complete)
+  const imageFraction = totalImages > 0 ? completedImages / totalImages : 0;
+  const imageProgress = imageFraction * 43; // 0-43 contribution
+
+  // Combined: text progress + image progress
+  const progress = Math.min(98, Math.round(textProgress + imageProgress));
+
+  // Determine stage label
+  const allTextDone = completedText >= totalDerivatives;
+  const stage: CascadeJobProgress["stage"] =
+    allTextDone && totalImages > 0 && completedImages < totalImages
+      ? "generating_images"
+      : "generating";
+
+  await db
+    .update(cascadeJobs)
+    .set({
+      completedDerivatives: completedText,
+      completedImages,
+      totalImages,
+      progress,
+    })
+    .where(eq(cascadeJobs.id, jobId));
+
+  await reportProgress(job, {
+    stage,
+    progress,
+    completedDerivatives: completedText,
+    totalDerivatives,
+    completedImages,
+    totalImages,
+  });
 }
 
 async function reportProgress(

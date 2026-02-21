@@ -15,9 +15,9 @@ type ProgressData = {
 const stageLabels: Record<string, string> = {
   queued: "Waiting in queue...",
   extracting: "Extracting key content...",
-  generating: "Generating text derivatives...",
-  imaging: "Generating visuals...",
-  generating_images: "Generating visuals...",
+  generating: "Generating content & visuals...",
+  imaging: "Finishing remaining visuals...",
+  generating_images: "Finishing remaining visuals...",
   completed: "Cascade complete!",
   failed: "Cascade failed",
 };
@@ -124,8 +124,10 @@ export function CascadeProgress({
             </p>
             {data.totalDerivatives > 0 && (
               <p className="text-xs text-muted-foreground">
-                {data.completedDerivatives} / {data.totalDerivatives}{" "}
-                derivatives
+                {data.completedDerivatives}/{data.totalDerivatives} text
+                {data.totalImages != null && data.totalImages > 0 && (
+                  <> &middot; {data.completedImages ?? 0}/{data.totalImages} visuals</>
+                )}
               </p>
             )}
           </div>
@@ -156,13 +158,6 @@ export function CascadeProgress({
           style={{ width: `${data.progress}%` }}
         />
       </div>
-
-      {/* Image progress */}
-      {data.totalImages != null && data.totalImages > 0 && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          {data.completedImages ?? 0} / {data.totalImages} image sets generated
-        </p>
-      )}
 
       {data.error && (
         <p className="mt-3 text-sm font-medium text-red-600 dark:text-red-400">

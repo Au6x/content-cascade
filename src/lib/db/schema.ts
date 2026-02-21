@@ -162,6 +162,8 @@ export const cascadeJobs = pgTable(
     progress: integer("progress").notNull().default(0),
     totalDerivatives: integer("total_derivatives").notNull().default(0),
     completedDerivatives: integer("completed_derivatives").notNull().default(0),
+    totalImages: integer("total_images").notNull().default(0),
+    completedImages: integer("completed_images").notNull().default(0),
     error: text("error"),
     startedAt: timestamp("started_at"),
     completedAt: timestamp("completed_at"),

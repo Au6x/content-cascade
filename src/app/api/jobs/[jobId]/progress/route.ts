@@ -39,6 +39,8 @@ export async function GET(
             progress: job.progress,
             totalDerivatives: job.totalDerivatives,
             completedDerivatives: job.completedDerivatives,
+            completedImages: job.completedImages,
+            totalImages: job.totalImages,
             error: job.error,
           });
 
