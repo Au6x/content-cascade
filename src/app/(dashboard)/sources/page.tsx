@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { listSources } from "@/server/sources";
+import { listSources, listBrands } from "@/server/sources";
 import { formatDistanceToNow } from "date-fns";
 
 const statusStyles: Record<string, string> = {
@@ -17,11 +17,22 @@ const statusStyles: Record<string, string> = {
     "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
 };
 
-export default async function SourcesPage() {
+export default async function SourcesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ brand?: string }>;
+}) {
+  const params = await searchParams;
+  const selectedBrandId = params.brand;
+
   let sources: Awaited<ReturnType<typeof listSources>> = [];
+  let brands: Awaited<ReturnType<typeof listBrands>> = [];
 
   try {
-    sources = await listSources();
+    [sources, brands] = await Promise.all([
+      listSources(selectedBrandId),
+      listBrands(),
+    ]);
   } catch {
     // DB not connected
   }
@@ -49,6 +60,36 @@ export default async function SourcesPage() {
         </div>
       </div>
 
+      {/* Brand filter */}
+      {brands.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <Link href="/sources">
+            <span
+              className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                !selectedBrandId
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              All brands
+            </span>
+          </Link>
+          {brands.map((b) => (
+            <Link key={b.id} href={`/sources?brand=${b.id}`}>
+              <span
+                className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  selectedBrandId === b.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {b.name}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+
       {sources.length === 0 ? (
         <Card className="border-0 shadow-sm ring-1 ring-border/50">
           <CardContent className="flex flex-col items-center justify-center py-16">
@@ -74,7 +115,7 @@ export default async function SourcesPage() {
               <div className="group rounded-2xl p-5 shadow-sm ring-1 ring-border/40 transition-all hover:shadow-md hover:ring-border/60">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex flex-wrap items-center gap-2.5">
                       <h3 className="truncate text-base font-semibold group-hover:text-primary transition-colors">
                         {source.title}
                       </h3>
@@ -86,6 +127,11 @@ export default async function SourcesPage() {
                       <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
                         {source.pillar.replace(/_/g, " ")}
                       </span>
+                      {source.brand && (
+                        <span className="shrink-0 rounded-full bg-violet-100 px-2.5 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-900/30 dark:text-violet-400">
+                          {source.brand.name}
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                       {source.content}

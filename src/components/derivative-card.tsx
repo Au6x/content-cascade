@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { DerivativeImages } from "@/components/derivative-images";
 import { CopyButton } from "@/components/copy-button";
+import { GhlPublishButton } from "@/components/ghl-publish-button";
 import type { PlatformMeta } from "@/lib/platform-meta";
 
 type DerivativeData = {
   id: string;
   status: string;
+  ghlPostId?: string | null;
   content: {
     primaryContent: string;
     hashtags?: string[];
@@ -249,6 +251,17 @@ export function DerivativeCard({
               }
             />
           </div>
+        </div>
+      )}
+
+      {/* ── GHL Publish ── */}
+      {!isContentFailed && (
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-100 px-5 py-3">
+          <GhlPublishButton
+            derivativeId={d.id}
+            currentStatus={d.status}
+            ghlPostId={d.ghlPostId}
+          />
         </div>
       )}
     </div>

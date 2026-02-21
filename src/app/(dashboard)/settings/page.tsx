@@ -5,7 +5,7 @@ import { brandProfiles, platforms, contentTemplates } from "@/lib/db/schema";
 import { eq, count } from "drizzle-orm";
 
 export default async function SettingsPage() {
-  let activeBrand = null;
+  let allBrands: typeof brandProfiles.$inferSelect[] = [];
   let allPlatforms: Array<{
     id: string;
     name: string;
@@ -15,24 +15,21 @@ export default async function SettingsPage() {
   }> = [];
 
   try {
-    activeBrand = await db.query.brandProfiles.findFirst({
-      where: eq(brandProfiles.isActive, true),
-    });
-
-    const platformsWithCounts = await db
-      .select({
-        id: platforms.id,
-        name: platforms.name,
-        slug: platforms.slug,
-        enabled: platforms.enabled,
-        templateCount: count(contentTemplates.id),
-      })
-      .from(platforms)
-      .leftJoin(contentTemplates, eq(platforms.id, contentTemplates.platformId))
-      .groupBy(platforms.id)
-      .orderBy(platforms.sortOrder);
-
-    allPlatforms = platformsWithCounts;
+    [allBrands, allPlatforms] = await Promise.all([
+      db.select().from(brandProfiles).orderBy(brandProfiles.name),
+      db
+        .select({
+          id: platforms.id,
+          name: platforms.name,
+          slug: platforms.slug,
+          enabled: platforms.enabled,
+          templateCount: count(contentTemplates.id),
+        })
+        .from(platforms)
+        .leftJoin(contentTemplates, eq(platforms.id, contentTemplates.platformId))
+        .groupBy(platforms.id)
+        .orderBy(platforms.sortOrder),
+    ]);
   } catch {
     // DB not connected
   }
@@ -42,45 +39,67 @@ export default async function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
-          Configure brand voice, platforms, and content templates
+          Configure brand voices, platforms, and content templates
         </p>
       </div>
 
-      {/* Brand Profile */}
+      {/* Brand Profiles */}
       <Card>
         <CardHeader>
-          <CardTitle>Brand Profile</CardTitle>
+          <CardTitle>Brand Voices</CardTitle>
           <CardDescription>
-            Brand voice guidelines used for all content generation
+            {allBrands.length} brand profiles configured for content generation
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {activeBrand ? (
-            <div className="space-y-3">
-              <div>
-                <span className="text-sm font-medium">Name:</span>{" "}
-                <span className="text-sm">{activeBrand.name}</span>
-              </div>
-              {activeBrand.tone && (
-                <div>
-                  <span className="text-sm font-medium">Tone:</span>{" "}
-                  <span className="text-sm">{activeBrand.tone}</span>
-                </div>
-              )}
-              {activeBrand.voiceGuidelines && (
-                <div>
-                  <span className="text-sm font-medium">Guidelines:</span>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {activeBrand.voiceGuidelines.slice(0, 500)}
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
+          {allBrands.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No brand profile configured. Run the seed script to create a
-              default profile.
+              No brand profiles configured. Run the seed script to create profiles.
             </p>
+          ) : (
+            <div className="space-y-3">
+              {allBrands.map((brand) => (
+                <div
+                  key={brand.id}
+                  className="rounded-xl border p-4 transition-colors hover:bg-muted/30"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{brand.name}</span>
+                        <Badge
+                          variant={brand.isActive ? "default" : "secondary"}
+                          className="text-[10px]"
+                        >
+                          {brand.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                        <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                          {brand.slug}
+                        </code>
+                      </div>
+                      {brand.tone && (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground/70">Tone:</span>{" "}
+                          {brand.tone}
+                        </p>
+                      )}
+                      {brand.voiceGuidelines && (
+                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                          {brand.voiceGuidelines}
+                        </p>
+                      )}
+                    </div>
+                    {brand.ghlLocationId && (
+                      <div className="shrink-0">
+                        <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-300">
+                          GHL Connected
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

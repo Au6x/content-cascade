@@ -137,10 +137,14 @@ export async function processCascadeJob(
       })
       .where(eq(cascadeJobs.id, jobId));
 
-    // 4. Load brand voice
-    const brandProfile = await db.query.brandProfiles.findFirst({
-      where: eq(brandProfiles.isActive, true),
-    });
+    // 4. Load brand voice (use source's brand if set, otherwise first active brand)
+    const brandProfile = source.brandId
+      ? await db.query.brandProfiles.findFirst({
+          where: eq(brandProfiles.id, source.brandId),
+        })
+      : await db.query.brandProfiles.findFirst({
+          where: eq(brandProfiles.isActive, true),
+        });
 
     const brandVoice = {
       voiceGuidelines: brandProfile?.voiceGuidelines ?? "",
@@ -187,6 +191,7 @@ export async function processCascadeJob(
           await db.insert(derivatives).values({
             sourceId,
             jobId,
+            brandId: source.brandId ?? null,
             templateId: task.template.id,
             platformId: task.platformId,
             variationIndex: task.variationIndex,
@@ -198,6 +203,7 @@ export async function processCascadeJob(
           await db.insert(derivatives).values({
             sourceId,
             jobId,
+            brandId: source.brandId ?? null,
             templateId: task.template.id,
             platformId: task.platformId,
             variationIndex: task.variationIndex,

@@ -1,6 +1,14 @@
 import { SourceForm } from "@/components/source-form";
+import { listBrands } from "@/server/sources";
 
-export default function NewSourcePage() {
+export default async function NewSourcePage() {
+  let brands: Awaited<ReturnType<typeof listBrands>> = [];
+  try {
+    brands = await listBrands();
+  } catch {
+    // DB not connected
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -9,7 +17,7 @@ export default function NewSourcePage() {
           Submit an article to generate social media content
         </p>
       </div>
-      <SourceForm />
+      <SourceForm brands={brands} />
     </div>
   );
 }

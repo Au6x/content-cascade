@@ -59,6 +59,55 @@ const LAYOUT_APPROACHES = [
 ];
 
 /**
+ * Rotate through 4 image styles based on variationIndex % 4.
+ * Keeps every set of 4 variations visually diverse.
+ */
+function getImageStyle(variationIndex: number): {
+  imageOptions: { source: "aiGenerated" | "noImages"; style?: string };
+  styleInstructions: string;
+} {
+  switch (variationIndex % 4) {
+    case 0:
+      return {
+        imageOptions: {
+          source: "aiGenerated",
+          style: "photorealistic, high-quality photography, cinematic lighting, ultra-realistic",
+        },
+        styleInstructions:
+          "VISUAL STYLE: Photorealistic cinematic background. Professional photography aesthetic with rich depth and natural lighting.",
+      };
+    case 1:
+      return {
+        imageOptions: {
+          source: "aiGenerated",
+          style: "cartoon illustration, bold outlines, vibrant flat design, vector art style",
+        },
+        styleInstructions:
+          "VISUAL STYLE: Bold cartoon/illustrated background. Vibrant flat design with bold outlines and punchy colors.",
+      };
+    case 2:
+      return {
+        imageOptions: { source: "noImages" },
+        styleInstructions:
+          "VISUAL STYLE: Infographic layout — pure graphic design with data visualization elements, icons, structured information hierarchy. No photography.",
+      };
+    case 3:
+    default:
+      return {
+        imageOptions: {
+          source: "aiGenerated",
+          style: "editorial photography, magazine layout, professional, editorial quality",
+        },
+        styleInstructions:
+          "VISUAL STYLE: Editorial/magazine-quality aesthetic. Professional journalistic look with clean composition.",
+      };
+  }
+}
+
+const MEME_FONT_RULE =
+  "TYPOGRAPHY RULE: Use MASSIVE font — text must occupy minimum 40% of the card height. Max 7 words per text section. Text must be readable at thumbnail size (small phone screen). Bold, high-contrast. No small text.";
+
+/**
  * Get a unique visual style string for a given variation index.
  * Deterministic but varied — same index always produces the same style.
  */
@@ -172,8 +221,8 @@ export function buildDrakeRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Drake meme comparison card. Split into two halves — top half is the rejected option, bottom half is the approved option. ${style} Strong visual contrast between reject and approve sections. No photos.`,
-    imageOptions: { source: "noImages" },
+    additionalInstructions: `Drake meme comparison card. Split into two halves — top half is the rejected option, bottom half is the approved option. ${style} Strong visual contrast between reject and approve sections. ${MEME_FONT_RULE} Use a contextual AI-generated background image that reflects the meme's topic.`,
+    imageOptions: { source: "aiGenerated", style: "contextual background, meme-style, bold graphic" },
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
   };
@@ -198,8 +247,8 @@ export function buildDistractedRequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Distracted boyfriend meme layout. Three-column comparison. ${style} Left column is the old boring option, center is the audience, right is the exciting new thing. Clear labels. No photos.`,
-    imageOptions: { source: "noImages" },
+    additionalInstructions: `Distracted boyfriend meme layout. Three-column comparison. ${style} Left column is the old boring option, center is the audience, right is the exciting new thing. Clear labels. ${MEME_FONT_RULE} Use a contextual background image that fits the topic.`,
+    imageOptions: { source: "aiGenerated", style: "contextual, meme background, vivid" },
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
   };
@@ -226,8 +275,8 @@ export function buildExpandingBrainRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Expanding brain meme format. Four horizontal panels stacked vertically, escalating in intensity. ${style} Visual intensity and font weight increase with each level. No photos.`,
-    imageOptions: { source: "noImages" },
+    additionalInstructions: `Expanding brain meme format. Four horizontal panels stacked vertically, escalating in intensity. ${style} Visual intensity and font weight increase with each level. ${MEME_FONT_RULE} Add a glowing brain or cosmic AI-generated background image that escalates in brightness/intensity.`,
+    imageOptions: { source: "aiGenerated", style: "glowing brain, cosmic escalation, neon, dramatic" },
     cardOptions: { dimensions: "4x5" },
     textOptions: { amount: "brief" },
   };
@@ -249,8 +298,8 @@ export function buildThisIsFineRequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `"This is fine" meme card. ${style} The situation text at top, a speech bubble at center-bottom with the calm response. Fire emoji decorations. The contrast between chaos and calm is the humor. No photos.`,
-    imageOptions: { source: "noImages" },
+    additionalInstructions: `"This is fine" meme card. ${style} The situation text at top, a speech bubble at center-bottom with the calm response. Fire emoji decorations. The contrast between chaos and calm is the humor. ${MEME_FONT_RULE} Use a chaotic fire/office background image to reinforce the joke.`,
+    imageOptions: { source: "aiGenerated", style: "chaotic office on fire, cartoon flames, absurd humor" },
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
   };
@@ -274,8 +323,8 @@ export function buildChangeMyMindRequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `"Change my mind" meme card. ${style} A large prominent sign/placard with the bold statement. "CHANGE MY MIND" label in a pill badge below. The statement is the dominant visual element. No photos.`,
-    imageOptions: { source: "noImages" },
+    additionalInstructions: `"Change my mind" meme card. ${style} A large prominent sign/placard with the bold statement. "CHANGE MY MIND" label in a pill badge below. The statement is the dominant visual element. ${MEME_FONT_RULE} Use a contextual background image that relates to the topic being debated.`,
+    imageOptions: { source: "aiGenerated", style: "debate setting, contextual, bold graphic background" },
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
   };
@@ -300,8 +349,8 @@ export function buildIsThisARequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `"Is this a...?" meme layout. ${style} Three labeled regions. Person on the left, thing on the right, "Is this a...?" question at the bottom. No photos.`,
-    imageOptions: { source: "noImages" },
+    additionalInstructions: `"Is this a...?" meme layout. ${style} Three labeled regions. Person on the left, thing on the right, "Is this a...?" question at the bottom. ${MEME_FONT_RULE} Use a contextual AI-generated background matching the meme's topic.`,
+    imageOptions: { source: "aiGenerated", style: "confused person, contextual background, vibrant meme" },
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
   };
@@ -325,8 +374,8 @@ export function buildTwoButtonsRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Two buttons meme card. ${style} Two large button-shaped rectangles side by side. A "VS" badge between them. The humor is in the impossible choice. No photos.`,
-    imageOptions: { source: "noImages" },
+    additionalInstructions: `Two buttons meme card. ${style} Two large button-shaped rectangles side by side. A "VS" badge between them. The humor is in the impossible choice. ${MEME_FONT_RULE} Use a sweating/stressed background image to reinforce the difficult decision humor.`,
+    imageOptions: { source: "aiGenerated", style: "stressed sweating person, two buttons, decision anxiety, vivid" },
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
   };
@@ -350,8 +399,8 @@ export function buildCustomConceptRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Custom meme concept card. ${style} Category: ${formatPillar(context.pillar)}. Creative, eye-catching. Large centered text as the focal point. Shareable and visually striking. No photos.`,
-    imageOptions: { source: "noImages" },
+    additionalInstructions: `Custom meme concept card. ${style} Category: ${formatPillar(context.pillar)}. Creative, eye-catching. Large centered text as the focal point. Shareable and visually striking. ${MEME_FONT_RULE} Use a contextual, vivid AI-generated background image that reinforces the meme concept.`,
+    imageOptions: { source: "aiGenerated", style: "vivid contextual meme background, bold graphic, shareable" },
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
   };
@@ -454,6 +503,7 @@ export function makePostGraphicBuilder(
 
     const style = getVariationStyle(context.variationIndex ?? 0);
     const useImages = options?.useAiImages ?? true;
+    const imgStyle = useImages ? getImageStyle(context.variationIndex ?? 0) : null;
 
     return {
       inputText: displayText,
@@ -461,10 +511,8 @@ export function makePostGraphicBuilder(
       format: options?.format ?? "social",
       numCards: 1,
       exportAs: "pdf",
-      additionalInstructions: `${baseStyle} ${style} Category: ${formatPillar(context.pillar)}.${useImages ? " Include a relevant, professional AI-generated background image that reinforces the message. The image should be subtle enough that text remains readable." : " No photos."}`,
-      imageOptions: useImages
-        ? { source: "aiGenerated", style: "professional, modern, high-quality" }
-        : { source: "noImages" },
+      additionalInstructions: `${baseStyle} ${style} Category: ${formatPillar(context.pillar)}.${imgStyle ? ` ${imgStyle.styleInstructions} Image should be subtle enough that text remains readable.` : " No photos."}`,
+      imageOptions: imgStyle?.imageOptions ?? { source: "noImages" },
       cardOptions: { dimensions: options?.dimensions ?? "1x1" },
       textOptions: { amount: "brief" },
     };
@@ -488,6 +536,7 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
     if (!hookText) return null;
 
     const style = getVariationStyle(context.variationIndex ?? 0);
+    const imgStyle = getImageStyle(context.variationIndex ?? 0);
 
     return {
       inputText: hookText,
@@ -495,8 +544,8 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
       format: "social",
       numCards: 1,
       exportAs: "pdf",
-      additionalInstructions: `${baseStyle} ${style} Category: ${formatPillar(context.pillar)}. Include a relevant AI-generated background image that creates visual interest and stops the scroll. Text must remain readable over the image.`,
-      imageOptions: { source: "aiGenerated", style: "professional, editorial, high-contrast" },
+      additionalInstructions: `${baseStyle} ${style} Category: ${formatPillar(context.pillar)}. ${imgStyle.styleInstructions} Image creates visual interest and stops the scroll. Text must remain readable over the image.`,
+      imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: "4x3" },
       textOptions: { amount: "brief" },
     };
@@ -523,6 +572,7 @@ export function makeCoverFrameBuilder(
 
     const style = getVariationStyle(context.variationIndex ?? 0);
     const useImages = options?.useAiImages ?? true;
+    const imgStyle = useImages ? getImageStyle(context.variationIndex ?? 0) : null;
 
     return {
       inputText: hookText,
@@ -530,10 +580,8 @@ export function makeCoverFrameBuilder(
       format: "social",
       numCards: 1,
       exportAs: "pdf",
-      additionalInstructions: `${baseStyle} ${style} Category: ${formatPillar(context.pillar)}.${useImages ? " Include a vibrant, eye-catching AI-generated background image that reinforces the topic. Text must be large and readable over the image with strong contrast." : " No photos."}`,
-      imageOptions: useImages
-        ? { source: "aiGenerated", style: "vibrant, bold, eye-catching, social media" }
-        : { source: "noImages" },
+      additionalInstructions: `${baseStyle} ${style} Category: ${formatPillar(context.pillar)}.${imgStyle ? ` ${imgStyle.styleInstructions} Text must be large and readable over the image with strong contrast.` : " No photos."}`,
+      imageOptions: imgStyle?.imageOptions ?? { source: "noImages" },
       cardOptions: { dimensions: options?.dimensions ?? "9x16" },
       textOptions: { amount: "brief" },
     };

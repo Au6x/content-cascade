@@ -62,6 +62,7 @@ export const funnelStageEnum = pgEnum("funnel_stage", [
 export const brandProfiles = pgTable("brand_profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
   voiceGuidelines: text("voice_guidelines").notNull().default(""),
   tone: text("tone").notNull().default(""),
   vocabulary: jsonb("vocabulary").$type<{
@@ -69,15 +70,35 @@ export const brandProfiles = pgTable("brand_profiles", {
     avoided: string[];
   }>().default({ preferred: [], avoided: [] }),
   exampleContent: jsonb("example_content").$type<string[]>().default([]),
-  isActive: boolean("is_active").notNull().default(false),
+  ghlLocationId: text("ghl_location_id"),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+export const brandAssets = pgTable(
+  "brand_assets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    brandId: uuid("brand_id")
+      .notNull()
+      .references(() => brandProfiles.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    description: text("description").notNull().default(""),
+    tags: jsonb("tags").$type<string[]>().default([]),
+    assetType: text("asset_type").notNull().default("headshot"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("idx_brand_assets_brand").on(table.brandId),
+  ]
+);
 
 export const contentSources = pgTable(
   "content_sources",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    brandId: uuid("brand_id").references(() => brandProfiles.id, { onDelete: "set null" }),
     title: text("title").notNull(),
     content: text("content").notNull(),
     pillar: pillarEnum("pillar").notNull().default("general"),
@@ -94,6 +115,7 @@ export const contentSources = pgTable(
   (table) => [
     index("idx_sources_status").on(table.status),
     index("idx_sources_created").on(table.createdAt),
+    index("idx_sources_brand").on(table.brandId),
   ]
 );
 
@@ -167,11 +189,13 @@ export const derivatives = pgTable(
     platformId: uuid("platform_id")
       .notNull()
       .references(() => platforms.id, { onDelete: "cascade" }),
+    brandId: uuid("brand_id").references(() => brandProfiles.id, { onDelete: "set null" }),
     variationIndex: integer("variation_index").notNull().default(0),
     content: jsonb("content").$type<DerivativeContent>().notNull(),
     status: derivativeStatusEnum("status").notNull().default("draft"),
     scheduledAt: timestamp("scheduled_at"),
     publishedAt: timestamp("published_at"),
+    ghlPostId: text("ghl_post_id"),
     performance: jsonb("performance").$type<Record<string, unknown>>().default({}),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -181,12 +205,30 @@ export const derivatives = pgTable(
     index("idx_derivatives_job").on(table.jobId),
     index("idx_derivatives_platform").on(table.platformId),
     index("idx_derivatives_status").on(table.status),
+    index("idx_derivatives_brand").on(table.brandId),
   ]
 );
 
 // ─── Relations ───────────────────────────────────────────
 
-export const contentSourcesRelations = relations(contentSources, ({ many }) => ({
+export const brandProfilesRelations = relations(brandProfiles, ({ many }) => ({
+  sources: many(contentSources),
+  derivatives: many(derivatives),
+  assets: many(brandAssets),
+}));
+
+export const brandAssetsRelations = relations(brandAssets, ({ one }) => ({
+  brand: one(brandProfiles, {
+    fields: [brandAssets.brandId],
+    references: [brandProfiles.id],
+  }),
+}));
+
+export const contentSourcesRelations = relations(contentSources, ({ one, many }) => ({
+  brand: one(brandProfiles, {
+    fields: [contentSources.brandId],
+    references: [brandProfiles.id],
+  }),
   jobs: many(cascadeJobs),
   derivatives: many(derivatives),
 }));
@@ -229,6 +271,10 @@ export const derivativesRelations = relations(derivatives, ({ one }) => ({
     fields: [derivatives.platformId],
     references: [platforms.id],
   }),
+  brand: one(brandProfiles, {
+    fields: [derivatives.brandId],
+    references: [brandProfiles.id],
+  }),
 }));
 
 // ─── Types ───────────────────────────────────────────────
@@ -249,6 +295,8 @@ export type PlatformConfig = {
   bestPractices: string[];
   hashtagRules: string;
 };
+
+export type BrandAsset = typeof brandAssets.$inferSelect;
 
 export type DerivativeContent = {
   primaryContent: string;

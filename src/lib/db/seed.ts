@@ -493,25 +493,104 @@ Return JSON: { "content": "the tweet text", "headlines": ["3 variations"], "hash
     {
       name: "X Article",
       slug: "x_article",
-      description: "Long-form X article (1500-2500 chars)",
+      description: "Long-form X article (2500-4000 chars)",
       funnelStage: "mofu",
-      promptTemplate: `Create a long-form X article (1500-2500 characters).
+      promptTemplate: `Create a long-form X article (2500-4000 characters). X Articles allow deep content — use the space to go beyond what a thread can do.
 
 ## Source Material
 Title: {{title}} | Pillar: {{pillar}}
 Takeaways: {{takeaways}}
 Quotes: {{quotes}}
 Stats: {{stats}}
+Audience: {{audience}}
 
 ## Requirements
-- Headline that works in X's article format
-- Structured with subheadings
-- Key insights from the source material
-- More depth than a thread but concise
-- End with a clear takeaway
+- HEADLINE: Punchy, curiosity-driven. Under 60 chars. Front-load the value.
+- OPENING PARAGRAPH: First 150 chars are visible in the feed — make it a scroll-stopper
+- STRUCTURE:
+  - Hook paragraph (1-2 paragraphs, establishes the tension or stakes)
+  - 3-5 sections with clear subheadings (use ## for H2)
+  - Pull a key quote or stat into a standalone paragraph for visual break
+  - Real examples or specific scenarios — no vague generalities
+  - Closing section: The bigger takeaway — what changes after reading this
+- LENGTH: 2500-4000 characters (push for depth, not padding)
+- TONE: Opinionated, expert, readable. Not academic. Not corporate.
+- End with a strong closing line + the CTA pointing readers to the reply/comments
 
-Return JSON: { "content": "the full article text", "headlines": ["3 title options"], "hashtags": ["3 hashtags"], "cta": "article CTA", "notes": "" }`,
+Return JSON: { "content": "the full article text with markdown subheadings", "headlines": ["3 title options"], "hashtags": ["3-5 hashtags"], "cta": "article CTA (reference 'reply below' not a URL)", "notes": "key thesis of the article" }`,
       sortOrder: 7,
+    },
+    {
+      name: "X Deep Dive",
+      slug: "x_deep_dive",
+      description: "In-depth X article (3000-5000 chars) — comprehensive expert analysis",
+      funnelStage: "bofu",
+      promptTemplate: `Create a comprehensive deep-dive X article (3000-5000 characters). This is flagship long-form content — thorough, authoritative, the kind of thing people bookmark.
+
+## Source Material
+Title: {{title}} | Pillar: {{pillar}}
+Takeaways: {{takeaways}}
+Quotes: {{quotes}}
+Stats: {{stats}}
+Emotional Angles: {{emotional_angles}}
+Audience: {{audience}}
+
+## Requirements
+- HEADLINE: Specific and authoritative. "How X Actually Works", "The Complete Guide to Y", "Everything Wrong With Z (And How to Fix It)"
+- OPENING: 2 paragraphs. Set up the problem, stakes, or common misconception. Make the reader feel this is essential reading.
+- BODY STRUCTURE (5-7 sections):
+  ## Section headings that are themselves insightful
+  - Each section = 300-600 chars minimum
+  - Mix of explanatory prose, specific examples, and data points
+  - At least 2 pull-quote or statistic callout paragraphs (bold and standalone)
+  - Where relevant: list key points with bullet points for scanability
+- EXPERT ANGLE: Take a clear point of view. This is not a Wikipedia article.
+- CONCLUSION: 2 paragraphs. Synthesize the key insight. End with a forward-looking statement.
+- LENGTH: 3000-5000 characters. This is a feature article, not a blog post.
+
+Return JSON: { "content": "full article text with markdown", "headlines": ["3 title options"], "hashtags": ["3-5 hashtags"], "cta": "CTA directing to comments/reply", "notes": "core argument/thesis" }`,
+      sortOrder: 8,
+    },
+    {
+      name: "X Case Study",
+      slug: "x_case_study",
+      description: "X article case study format (2000-3500 chars)",
+      funnelStage: "bofu",
+      promptTemplate: `Create an X article in case study format (2000-3500 characters). Case studies are the highest-converting content format for B2B audiences.
+
+## Source Material
+Title: {{title}} | Pillar: {{pillar}}
+Takeaways: {{takeaways}}
+Quotes: {{quotes}}
+Stats: {{stats}}
+Audience: {{audience}}
+
+## Requirements
+- HEADLINE: "How [X] Did [Y] in [Timeframe]" or "The [X] Framework That [Result]"
+- STRUCTURE (Problem → Solution → Result):
+  ## The Situation
+  - Who or what is this about? Set the scene with specifics.
+  - What was the core challenge or opportunity?
+
+  ## The Approach
+  - What strategy or framework was applied?
+  - The key decisions and why they were made
+  - What most people get wrong here
+
+  ## The Results
+  - Specific outcomes, metrics, or changes (use the stats from source material)
+  - What was surprising or counterintuitive
+
+  ## The Lesson
+  - What does this mean for the reader?
+  - The transferable principle they can apply immediately
+
+- LENGTH: 2000-3500 characters
+- Use real specifics — numbers, timeframes, decisions. Vague case studies don't convert.
+- TONE: Journalistic. Let the results do the selling.
+
+Return JSON: { "content": "full article with markdown structure", "headlines": ["3 headline options"], "hashtags": ["3-5 hashtags"], "cta": "CTA pointing to comments for questions/discussion", "notes": "the core transferable lesson" }`,
+      sortOrder: 9,
     },
   ];
 }
@@ -688,6 +767,85 @@ Title: {{title}} | Hooks: {{hooks}}
 
 Return JSON: { "content": "the caption", "headlines": ["3 options"], "hashtags": ["10-15 hashtags, mix of large/medium/niche"], "cta": "", "visual_direction": "image concept", "notes": "" }`,
       sortOrder: 7,
+    },
+    {
+      name: "Attractive Character Story",
+      slug: "attractive_story",
+      description: "Russell Brunson personal vulnerability + professional lesson post",
+      funnelStage: "tofu",
+      promptTemplate: `Create an Instagram "Attractive Character" personal story post. This is the Russell Brunson storytelling framework — personal vulnerability that leads to a professional lesson.
+
+## Source Material
+Title: {{title}} | Pillar: {{pillar}}
+Emotional Angles: {{emotional_angles}}
+Takeaways: {{takeaways}}
+Audience: {{audience}}
+
+## Requirements (Attractive Character Framework)
+- HOOK (first line, visible before "more"): Start with a confession, near-failure, or vulnerability. Examples:
+  "I almost quit last year."
+  "Nobody told me this would be this hard."
+  "I failed at this 3 times before it clicked."
+- STORY (lines 2-10): The personal struggle — what happened, what was at stake, the moment of clarity
+- LESSON (final 1/3): The professional insight derived from the personal story. Connect directly to {{pillar}}.
+- Tone: Genuinely human. NOT corporate. First person. Specific details, not vague generalities.
+- Length: 800-1400 characters
+- End with: A question that invites the audience to share their own experience
+
+## What this post is NOT:
+- Not a listicle or tips post — this is a STORY
+- Not fake vulnerability — the struggle must feel real
+- Not a pitch — the lesson is the value, there's no product mention
+
+Return JSON: {
+  "content": "the full caption with line breaks",
+  "headlines": ["3 hook first-line options"],
+  "hashtags": ["8-12 hashtags: personal brand, industry, storytelling mix"],
+  "cta": "question CTA inviting audience to share their story",
+  "visual_direction": "candid, authentic photo concept — behind the scenes, real moment, not staged",
+  "notes": "story arc summary"
+}`,
+      sortOrder: 8,
+    },
+    {
+      name: "Attractive Character Moment",
+      slug: "attractive_moment",
+      description: "Russell Brunson relatable humor / behind-the-scenes candid post",
+      funnelStage: "tofu",
+      promptTemplate: `Create an Instagram "Attractive Character Moment" post. This is the relatable humor and behind-the-scenes format from Russell Brunson's framework — showing the human side of professional life.
+
+## Source Material
+Title: {{title}} | Pillar: {{pillar}}
+Audience: {{audience}}
+Emotional Angles: {{emotional_angles}}
+
+## Requirements (Attractive Character Moment)
+- TYPE: Pick one of these angles based on the source material:
+  A) Relatable struggle: A funny or honest admission about the daily reality of working in {{pillar}}
+  B) Behind-the-scenes: An unexpected or candid moment from the work/business process
+  C) Hot take / contrarian: A mildly controversial opinion that your audience secretly agrees with
+  D) Self-deprecating win: "I looked ridiculous doing X, but here's what worked"
+
+- STRUCTURE:
+  - Line 1: The relatable/funny setup (1 sentence)
+  - Lines 2-5: The details that make it real and funny/honest
+  - Lines 6-8: The professional insight or twist ending
+  - End: Invitation to engage ("Tell me I'm not the only one" / "Drop a 🙋 if this is you")
+
+- Tone: Conversational, slightly informal, like texting a smart colleague
+- Length: 400-800 characters
+- Use line breaks and emojis strategically (not excessively)
+- Do NOT be corporate. This should sound like a real person.
+
+Return JSON: {
+  "content": "the full caption",
+  "headlines": ["3 first-line hook options"],
+  "hashtags": ["5-10 hashtags, personal brand + industry"],
+  "cta": "relatable engagement CTA",
+  "visual_direction": "candid or minimalist photo concept — real moment, reaction face, workspace, or text-on-image",
+  "notes": "which angle was used (A/B/C/D)"
+}`,
+      sortOrder: 9,
     },
   ];
 }
@@ -1361,36 +1519,97 @@ Return JSON: { "content": "detailed meme description and concept", "format": "cu
 async function seed() {
   console.log("Seeding database...\n");
 
-  // 1. Brand Profile
-  console.log("Creating default brand profile...");
-  await db.insert(brandProfiles).values({
-    name: "Default Brand",
-    voiceGuidelines:
-      "Professional yet approachable. Speak with authority backed by data, but keep it conversational. Avoid jargon unless the audience expects it. Be bold in opinions but respectful of alternatives. Use active voice.",
-    tone: "Confident, insightful, conversational, and occasionally witty. Think 'smart friend who explains complex things simply.'",
-    vocabulary: {
-      preferred: [
-        "insight",
-        "strategy",
-        "transform",
-        "leverage",
-        "growth",
-        "impact",
-        "innovation",
-      ],
-      avoided: [
-        "synergy",
-        "disrupt",
-        "circle back",
-        "low-hanging fruit",
-        "move the needle",
-        "deep dive",
-      ],
+  // 1. Brand Profiles (9 brands)
+  console.log("Creating brand profiles...");
+  const BRAND_PROFILES = [
+    {
+      name: "Carl — Investor",
+      slug: "carl-investor",
+      voiceGuidelines: "Data-driven contrarian with deep investment experience. Challenges conventional wisdom with evidence. Speaks from the perspective of someone who has deployed capital and seen what works. Blunt, opinionated, and refreshingly honest about what most investors won't say publicly.",
+      tone: "Confident, contrarian, analytical. Like a seasoned investor on a panel who says the thing everyone is thinking but no one will say.",
+      vocabulary: { preferred: ["capital allocation", "returns", "due diligence", "asymmetric", "thesis", "deployment", "alpha"], avoided: ["synergy", "disruption", "unicorn", "pivot", "game-changer"] },
+      exampleContent: [],
+      isActive: true,
     },
-    exampleContent: [],
-    isActive: true,
-  });
-  console.log("  Brand profile created.\n");
+    {
+      name: "Carl — AI/Tech",
+      slug: "carl-ai",
+      voiceGuidelines: "Forward-thinking technologist who has implemented AI in real businesses. Cuts through AI hype with practical implementation experience. Focuses on ROI, workflow automation, and what actually works vs. what's vaporware. Speaks to operators, not theorists.",
+      tone: "Technical but accessible. Pragmatic futurist. No fluff — just what actually moves the needle in real businesses.",
+      vocabulary: { preferred: ["automation", "workflow", "implementation", "ROI", "efficiency", "AI-native", "augmentation"], avoided: ["revolutionary", "game-changing", "disruption", "paradigm shift", "mindblowing"] },
+      exampleContent: [],
+      isActive: true,
+    },
+    {
+      name: "Colonial Oaks",
+      slug: "colonial-oaks",
+      voiceGuidelines: "Compassionate senior living community that puts families first. Speaks with warmth, dignity, and deep respect for the aging journey. Addresses the real fears and hopes families face when considering care for a loved one. Balances emotional sensitivity with practical information.",
+      tone: "Warm, trustworthy, and human. Like a caring counselor who also happens to know everything about senior care. Never clinical, never corporate.",
+      vocabulary: { preferred: ["dignity", "family", "comfort", "care", "community", "peace of mind", "quality of life"], avoided: ["facility", "patient", "elderly", "placement", "institutionalized"] },
+      exampleContent: [],
+      isActive: true,
+    },
+    {
+      name: "Uprise Living",
+      slug: "uprise-living",
+      voiceGuidelines: "Growth-focused proptech brand at the intersection of real estate and technology. Speaks to developers, operators, and investors who are building the future of living. Data-driven, forward-looking, and unafraid to challenge legacy real estate thinking.",
+      tone: "Bold, innovative, and market-aware. Like a real estate developer who actually understands technology — rare and credible.",
+      vocabulary: { preferred: ["proptech", "NOI", "occupancy", "resident experience", "portfolio", "scale", "technology-enabled"], avoided: ["traditional", "old-school", "legacy systems", "we've always done it this way"] },
+      exampleContent: [],
+      isActive: true,
+    },
+    {
+      name: "Veralto Capital",
+      slug: "veralto-capital",
+      voiceGuidelines: "Institutional-grade investment firm with a clear thesis. Communicates with the authority of a fund manager who has seen multiple market cycles. Analytical, precise, and focused on long-term value creation over short-term noise. Speaks to sophisticated investors and family offices.",
+      tone: "Authoritative, measured, and precise. Like a letter to LPs — thoughtful, evidence-based, no hyperbole.",
+      vocabulary: { preferred: ["thesis", "allocation", "risk-adjusted", "value creation", "macro", "fundamentals", "portfolio construction"], avoided: ["hot market", "FOMO", "moon", "guaranteed returns", "can't miss"] },
+      exampleContent: [],
+      isActive: true,
+    },
+    {
+      name: "Ideal AI",
+      slug: "ideal-ai",
+      voiceGuidelines: "No-nonsense AI automation consultancy that speaks the language of business owners, not data scientists. Focuses on practical automation wins, cost savings, and competitive advantage. Anti-hype, pro-results. Shows the math, shares the wins, builds the case for action.",
+      tone: "Practical, results-oriented, and refreshingly direct. Like a trusted advisor who tells you exactly what AI will and won't do for your business.",
+      vocabulary: { preferred: ["automation", "time saved", "cost reduction", "competitive edge", "implementation", "measurable results", "business process"], avoided: ["artificial intelligence revolution", "transformational", "world-changing", "the future is now"] },
+      exampleContent: [],
+      isActive: true,
+    },
+    {
+      name: "HR Hotlines",
+      slug: "hr-hotlines",
+      voiceGuidelines: "Compliance-aware HR resource that helps business owners and HR professionals navigate the complexity of employment law, recruiting, and people management. Speaks like a trusted HR consultant — practical, up-to-date, and aware of both legal and cultural dimensions of the workplace.",
+      tone: "Knowledgeable, practical, and compliance-conscious. Like an HR attorney who also understands real-world business constraints.",
+      vocabulary: { preferred: ["compliance", "best practices", "documentation", "employee relations", "retention", "hiring", "policy"], avoided: ["probably fine", "gray area", "we'll deal with it later", "not a big deal"] },
+      exampleContent: [],
+      isActive: true,
+    },
+    {
+      name: "Senior Living Deals",
+      slug: "senior-living-deals",
+      voiceGuidelines: "Transaction-focused brand for senior housing M&A, acquisitions, and deal flow. Speaks directly to buyers, sellers, brokers, and operators in the senior living space. Unfiltered, deal-oriented, and focused on what makes transactions succeed or fail.",
+      tone: "Direct, deal-focused, and operator-minded. Like a senior housing broker who has closed hundreds of deals and will tell you exactly what buyers want.",
+      vocabulary: { preferred: ["cap rate", "NOI", "census", "operations", "deal flow", "acquisition", "operator", "value-add"], avoided: ["passive income", "easy money", "turnkey", "no-brainer deal"] },
+      exampleContent: [],
+      isActive: true,
+    },
+    {
+      name: "IOSL",
+      slug: "iosl",
+      voiceGuidelines: "Business school and educational brand that bridges academic rigor with real-world application. Speaks to ambitious professionals and business owners who want frameworks, not just tactics. Authoritative but accessible — makes complex business concepts feel actionable and immediate.",
+      tone: "Educational, authoritative, and practitioner-focused. Like a business school professor who actually ran a company.",
+      vocabulary: { preferred: ["framework", "strategy", "principles", "case study", "application", "leadership", "execution"], avoided: ["just do it", "hustle", "grind", "no excuses", "everyone can do this"] },
+      exampleContent: [],
+      isActive: true,
+    },
+  ];
+
+  await db.insert(brandProfiles).values(BRAND_PROFILES);
+  for (const b of BRAND_PROFILES) {
+    console.log(`  ${b.name} (${b.slug})`);
+  }
+  console.log();
 
   // 2. Platforms
   console.log("Creating platforms...");
@@ -1448,7 +1667,7 @@ async function seed() {
   }
 
   console.log(`\nSeed complete!`);
-  console.log(`  1 brand profile`);
+  console.log(`  ${BRAND_PROFILES.length} brand profiles`);
   console.log(`  ${insertedPlatforms.length} platforms`);
   console.log(`  ${totalTemplates} content templates`);
 

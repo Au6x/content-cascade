@@ -201,6 +201,48 @@ const PLATFORM_RULES: Record<string, string> = {
 - More than 10 words per panel (kills the humor)`,
 };
 
+const PLATFORM_CTA_STRATEGY: Record<string, string> = {
+  LinkedIn: `On LinkedIn, NEVER paste a URL in the post body — it triggers a 40-50% reach penalty.
+The link goes in the FIRST COMMENT after publishing. Write the CTA to direct readers there:
+- Good: "Full breakdown in the first comment 👇", "Link to the original article is in the comments", "Grab the full guide — first comment below"
+- Never write a URL in the primaryContent or cta field. If you reference a link, say "first comment" or "comments section".`,
+
+  "X/Twitter": `On X/Twitter, links in tweets suppress reach significantly.
+The link goes in a REPLY TO YOUR OWN TWEET after posting. Write the CTA for this:
+- Good: "Link in the reply below 👇", "Full article in the thread reply", "Dropping the link in my reply"
+- Never paste a URL in any tweet text. The "cta" field should reference "the reply" or "thread" not a URL.`,
+
+  Instagram: `On Instagram, NEVER paste URLs in captions — they are not clickable anyway.
+All link CTAs use "Link in bio" or "Link in profile":
+- Good: "Link in bio for the full breakdown 🔗", "Save this post + check the link in bio", "Full article in my bio link"
+- Never write a URL in the caption. "Link in bio" is the only link CTA that works on Instagram.`,
+
+  TikTok: `On TikTok, external links in video descriptions are suppressed unless you have 1K+ followers.
+All link CTAs use "Link in bio":
+- Good: "Link in bio for more", "Check the link in my bio 🔗", "Full guide in bio"
+- Never paste a URL in the script or description. TikTok suppresses posts with external links.`,
+
+  YouTube: `On YouTube, the URL belongs in the video description and the pinned first comment.
+Write CTAs that reference both:
+- Good: "Link in the description below", "Full resource linked in description + pinned comment", "Check description for the article"
+- The "cta" field should say "link in description" — never expect the viewer to type a URL.`,
+
+  Facebook: `On Facebook, link posts (posts with a URL preview) have the worst organic reach.
+For engagement posts: no link in the post body. Reference it conversationally if needed ("dropped the link in the comments").
+For link-share posts: the URL goes directly in the post, Facebook generates the preview automatically.
+Decide based on the template — engagement/comment posts → "link in comments", share posts → URL is fine.`,
+
+  Memes: `Memes should NEVER contain links. Zero. The goal is shareability, not traffic.
+No CTA with a link — the only acceptable CTAs are:
+- "Tag someone who needs this"
+- "Share to your team"
+- "Save this"
+The "cta" field should be one of these share-focused CTAs. No URLs, no "link in bio".`,
+
+  default: `Include a link only if the platform natively supports clickable links in posts.
+For platforms that suppress links, reference where the link can be found (bio, comments, description).`,
+};
+
 export function buildGenerationSystemPrompt(
   platformName: string,
   brandVoice: {
@@ -234,12 +276,16 @@ Shares/DM-forwards are the #1 engagement signal on most platforms in 2025.`,
     parts.push(PLATFORM_RULES[platformKey]);
   }
 
+  // Platform-specific link/CTA placement strategy
+  const ctaStrategy = PLATFORM_CTA_STRATEGY[platformKey ?? ""] ?? PLATFORM_CTA_STRATEGY.default;
+  parts.push(`## Link & CTA Placement Strategy\n${ctaStrategy}`);
+
   // Mandatory CTA requirement
   parts.push(`## MANDATORY: Strong Call-to-Action
 EVERY piece of content MUST include a compelling CTA in the "cta" field. Not generic — specific and action-oriented.
 Good CTAs: "Save this for your next strategy meeting 🔖", "Tag a colleague who needs to hear this", "Comment your biggest challenge with [topic]"
 BAD CTAs: "Let me know what you think", "Leave a comment", "Follow for more"
-The CTA should match the platform and content type.`);
+The CTA should match the platform and content type AND the link placement strategy above.`);
 
   if (brandVoice.voiceGuidelines) {
     parts.push(`## Brand Voice\n${brandVoice.voiceGuidelines}`);

@@ -1,14 +1,21 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { contentSources, cascadeJobs, derivatives } from "@/lib/db/schema";
+import { contentSources, cascadeJobs, derivatives, brandProfiles } from "@/lib/db/schema";
 import { eq, desc, count, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+
+export async function listBrands() {
+  return db.select({ id: brandProfiles.id, name: brandProfiles.name, slug: brandProfiles.slug })
+    .from(brandProfiles)
+    .orderBy(brandProfiles.name);
+}
 
 export async function createSource(data: {
   title: string;
   content: string;
   pillar: string;
+  brandId?: string;
   canonicalUrl?: string;
   primaryHandle?: string;
   variationsCount?: number;
@@ -19,6 +26,7 @@ export async function createSource(data: {
       title: data.title,
       content: data.content,
       pillar: data.pillar as any,
+      brandId: data.brandId || null,
       canonicalUrl: data.canonicalUrl || null,
       primaryHandle: data.primaryHandle || "",
       variationsCount: data.variationsCount ?? 5,
@@ -30,10 +38,12 @@ export async function createSource(data: {
   return source;
 }
 
-export async function listSources() {
+export async function listSources(brandId?: string) {
   return db.query.contentSources.findMany({
+    where: brandId ? eq(contentSources.brandId, brandId) : undefined,
     orderBy: desc(contentSources.createdAt),
     with: {
+      brand: true,
       jobs: {
         orderBy: desc(cascadeJobs.createdAt),
         limit: 1,

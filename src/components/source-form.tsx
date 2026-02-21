@@ -9,6 +9,10 @@ import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createSource } from "@/server/sources";
 
+type Brand = { id: string; name: string; slug: string };
+
+type Props = { brands?: Brand[] };
+
 const PILLARS = [
   "general",
   "leadership",
@@ -22,10 +26,11 @@ const PILLARS = [
   "marketing",
 ];
 
-export function SourceForm() {
+export function SourceForm({ brands = [] }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [variationsCount, setVariationsCount] = useState(5);
+  const [brandId, setBrandId] = useState(brands[0]?.id ?? "");
 
   const handleVariationsChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +50,7 @@ export function SourceForm() {
         title: formData.get("title") as string,
         content: formData.get("content") as string,
         pillar: formData.get("pillar") as string,
+        brandId: brandId || undefined,
         canonicalUrl: (formData.get("canonicalUrl") as string) || undefined,
         primaryHandle: (formData.get("primaryHandle") as string) || undefined,
         variationsCount,
@@ -63,6 +69,27 @@ export function SourceForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {brands.length > 0 && (
+            <div className="space-y-2">
+              <label htmlFor="brandId" className="text-sm font-medium">
+                Brand
+              </label>
+              <Select
+                id="brandId"
+                name="brandId"
+                value={brandId}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setBrandId(e.target.value)}
+                required
+              >
+                {brands.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium">
               Title
