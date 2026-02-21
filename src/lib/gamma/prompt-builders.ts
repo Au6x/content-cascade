@@ -537,12 +537,10 @@ export function buildSocialGraphicRequest(
   if (!displayText) return null;
 
   const vi = context.variationIndex ?? 0;
-  const imgStyle = getImageStyle(vi);
-
-  const inputText = `A photorealistic photograph related to: ${context.title}. Overlay text: ${displayText.slice(0, 80)}`;
+  const imgStyle = withTopicStyle(getImageStyle(vi), context.title);
 
   return {
-    inputText,
+    inputText: displayText,
     textMode: "generate",
     format: "social",
     numCards: 1,
@@ -581,13 +579,10 @@ export function makePostGraphicBuilder(
     if (!displayText) return null;
 
     const vi = context.variationIndex ?? 0;
-    const imgStyle = getImageStyle(vi);
-
-    // Build image-first inputText: scene description + overlay text
-    const inputText = `A photorealistic photograph related to: ${context.title}. Overlay text: ${displayText.slice(0, 80)}`;
+    const imgStyle = withTopicStyle(getImageStyle(vi), context.title);
 
     return {
-      inputText,
+      inputText: displayText,
       textMode: "generate",
       format: options?.format ?? "social",
       numCards: 1,
@@ -618,12 +613,10 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
     if (!hookText) return null;
 
     const vi = context.variationIndex ?? 0;
-    const imgStyle = getPhotoRealisticStyle(vi);
-
-    const inputText = `A photorealistic photograph related to: ${context.title}. Overlay text: ${hookText.slice(0, 80)}`;
+    const imgStyle = withTopicStyle(getPhotoRealisticStyle(vi), context.title);
 
     return {
-      inputText,
+      inputText: hookText,
       textMode: "generate",
       format: "social",
       numCards: 1,
@@ -656,12 +649,10 @@ export function makeCoverFrameBuilder(
     if (!hookText) return null;
 
     const vi = context.variationIndex ?? 0;
-    const imgStyle = getPhotoRealisticStyle(vi);
-
-    const inputText = `A photorealistic photograph related to: ${context.title}. Overlay text: ${hookText.slice(0, 80)}`;
+    const imgStyle = withTopicStyle(getPhotoRealisticStyle(vi), context.title);
 
     return {
-      inputText,
+      inputText: hookText,
       textMode: "generate",
       format: "social",
       numCards: 1,
@@ -710,4 +701,24 @@ export function buildStorySeriesRequest(
 
 function formatPillar(pillar: string): string {
   return pillar.replace(/_/g, " ").toUpperCase();
+}
+
+/**
+ * Append topic context to imageOptions.style so the AI image model
+ * generates a scene relevant to the article, not a generic stock photo.
+ */
+function withTopicStyle(
+  imgResult: ImageStyleResult,
+  title: string
+): ImageStyleResult {
+  const topicHint = `, scene related to: ${title.slice(0, 80)}`;
+  return {
+    ...imgResult,
+    imageOptions: {
+      ...imgResult.imageOptions,
+      style: imgResult.imageOptions.style
+        ? imgResult.imageOptions.style + topicHint
+        : undefined,
+    },
+  };
 }
