@@ -11,7 +11,7 @@ export type GammaDimension =
 
 export type GammaGenerationRequest = {
   inputText: string;
-  textMode: "preserve";
+  textMode: "preserve" | "generate" | "condense";
   format: GammaFormat;
   numCards: number;
   exportAs: "pdf";

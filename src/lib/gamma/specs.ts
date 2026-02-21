@@ -30,35 +30,35 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Professional LinkedIn companion graphic. Dark navy background with elegant white typography. Feature a bold quote or key insight from the post. Clean, corporate design with subtle accent lines."
+      "Photo-centric LinkedIn thought leadership post. Scene: a professional in a modern executive office or conference room. Headline text overlaid on the photograph."
     ),
   },
   story_post: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Narrative LinkedIn companion graphic. Warm-toned gradient background (amber to deep brown). Feature a pivotal quote or the story's key lesson in large serif typography. Intimate, reflective mood."
+      "Photo-centric LinkedIn storytelling post. Scene: warm, intimate professional setting. The photograph evokes the narrative mood. Key lesson overlaid as text."
     ),
   },
   contrarian_take: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Bold contrarian statement card. Striking red-to-black gradient. Large bold uppercase text with the provocative claim. Designed to stop the scroll. Minimal, confrontational design."
+      "Photo-centric bold contrarian post. Scene: dramatic, high-contrast professional setting. The provocative headline overlaid on a striking photograph. Scroll-stopping visual."
     ),
   },
   data_spotlight: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Data-driven LinkedIn graphic. Clean white background with a large emphasized number or statistic as the hero element. Accent color underline. Supporting context text below in smaller type."
+      "Photo-centric data-driven post. Scene: modern technology or analytics setting. The key statistic overlaid as large bold text on the photograph."
     ),
   },
   listicle: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "LinkedIn listicle preview card. Dark background with the first 3-4 numbered items in a clean layout. Modern typography with colored number badges. Suggests more value inside the post.",
+      "Photo-centric LinkedIn listicle preview. Scene: dynamic professional workplace. The first few items overlaid on the photograph.",
       { maxLen: 300 }
     ),
   },
@@ -66,7 +66,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "LinkedIn question card. Blue-to-purple gradient background. Large decorative question mark icon. Bold centered question text. Designed to spark engagement and comments."
+      "Photo-centric LinkedIn engagement post. Scene: collaborative professional environment. The question text overlaid boldly on the photograph."
     ),
   },
   carousel_outline: {
@@ -90,14 +90,14 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makeThreadHeaderBuilder(
-      "X/Twitter thread hook card. Dark background with bold white text. Thread emoji (🧵) accent. The opening hook text prominently displayed. Designed as a shareable thread preview image."
+      "Photo-centric X/Twitter thread hook. Scene: dynamic, attention-grabbing professional setting. The opening hook overlaid boldly on the photograph."
     ),
   },
   hot_take: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Bold hot take card. High-contrast black background with fiery gradient text or orange accent. The statement in large, impactful typography. Minimal design, maximum attitude.",
+      "Photo-centric bold hot take. Scene: dramatic, intense setting. The statement overlaid in large impactful text on the photograph. Maximum attitude.",
       { maxLen: 280 }
     ),
   },
@@ -105,35 +105,35 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Data bomb card for X/Twitter. Dark background with a massive highlighted number. Supporting context in smaller text below. Clean, modern data visualization aesthetic."
+      "Photo-centric data bomb card. Scene: modern technology or industry setting. A massive highlighted number overlaid on the photograph."
     ),
   },
   quote_tweet: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Quote card for X/Twitter. Elegant design with large decorative quotation marks. The key quote centered in bold. Subtle gradient background. Designed for sharing."
+      "Photo-centric quote card. Scene: elegant, thoughtful setting. The key quote overlaid boldly on the photograph."
     ),
   },
   poll_tweet: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "X poll teaser card. Clean design with the poll question prominently displayed. Abstract representations of choices. Modern, engagement-focused design."
+      "Photo-centric poll teaser. Scene: engaging professional environment. The poll question overlaid on the photograph."
     ),
   },
   thread_hook: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Thread hook graphic. Bold, attention-grabbing design with the hook text. Thread icon (🧵). Dark background, bright text. Designed to make people click 'Show thread'."
+      "Photo-centric thread hook. Scene: attention-grabbing, bold setting. The hook text overlaid on the photograph. Designed to make people click."
     ),
   },
   reply_bait: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Engagement bait card. Playful, eye-catching design. Bold text with a provocative question or fill-in-the-blank. Vibrant gradient colors. Designed to be irresistible to reply to.",
+      "Photo-centric engagement bait. Scene: playful, eye-catching setting. Bold question text overlaid on the photograph.",
       { maxLen: 280 }
     ),
   },
@@ -141,7 +141,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makeThreadHeaderBuilder(
-      "X article header graphic. Clean, magazine-style design. Bold headline text with a subtle accent line. Professional yet modern aesthetic. Designed as an article preview card."
+      "Photo-centric X article header. Scene: clean, magazine-style professional environment. Bold headline overlaid on the photograph."
     ),
   },
 
@@ -168,14 +168,14 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "Reel cover frame. Vertical format. Bold hook text in large white font. Eye-catching gradient background (vibrant pink-to-orange or blue-to-purple). Designed for Reels discovery feed. High energy, scroll-stopping."
+      "Reel cover frame. Vertical format. Bold hook text overlaid on a photorealistic background. High energy, scroll-stopping visual."
     ),
   },
   reel_hook: {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "Reel hook frame. Vertical format. Pattern-interrupt design. Bold, oversized text with the hook line. Striking contrast. Emoji accents. Designed to stop mid-scroll in under 1 second."
+      "Reel hook frame. Vertical format. Bold oversized text overlaid on a striking photorealistic background. Pattern-interrupt design."
     ),
   },
   story_series: {
@@ -187,14 +187,14 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Instagram post companion graphic. Aesthetic, branded design with the key message or quote from the caption. Gradient background. Square format optimized for the Instagram feed grid. Elegant typography."
+      "Photo-centric Instagram post. Scene: aesthetic, visually rich setting relevant to the topic. Key message overlaid on the photograph. Square format for feed grid."
     ),
   },
   caption_short: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Punchy Instagram graphic. Bold minimalist design with short impactful text. Strong contrast, single vibrant background color. Designed to pair with a short caption for maximum feed impact.",
+      "Photo-centric punchy Instagram graphic. Scene: bold, striking setting. Short impactful text overlaid on the photograph.",
       { maxLen: 120 }
     ),
   },
@@ -207,56 +207,56 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "TikTok video cover frame. Vertical format. Ultra-bold hook text. Vibrant gradient background (neon green, electric blue, or hot pink). Gen-Z aesthetic. Designed to stand out in the For You page."
+      "TikTok video cover. Vertical format. Ultra-bold hook text overlaid on a vibrant photorealistic background. Designed to stand out in the For You page."
     ),
   },
   educational: {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "TikTok educational cover. Vertical format. 'Did you know?' or topic header badge at top. Clean educational aesthetic with bold white text on dark background. Bookmarking-friendly design."
+      "TikTok educational cover. Vertical format. Bold text overlaid on a photorealistic background scene. Educational, bookmarking-friendly."
     ),
   },
   storytime: {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "TikTok storytime cover. Vertical format. Narrative hook text with 'Storytime' badge at top. Warm cinematic tones (amber, burgundy gradients). Creates curiosity and invites tapping."
+      "TikTok storytime cover. Vertical format. Narrative hook text overlaid on a warm cinematic photorealistic scene. Creates curiosity."
     ),
   },
   trend_adaptation: {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "TikTok trend cover. Vertical format. Trendy, dynamic design with bold text and the trend hook. Pop culture aesthetic. Bright, saturated colors."
+      "TikTok trend cover. Vertical format. Bold text overlaid on a dynamic photorealistic scene. Trendy, pop culture energy."
     ),
   },
   duet_response: {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "TikTok duet invitation cover. Vertical format. Bold statement or question with 'Duet this' prompt badge. Split-screen visual suggestion. Engaging, challenge-style design."
+      "TikTok duet invitation cover. Vertical format. Bold statement overlaid on a photorealistic scene. Engaging challenge-style visual."
     ),
   },
   greenscreen: {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "TikTok greenscreen background card. Vertical format. Key information or data displayed as a clean, readable background image. Large text, high contrast. Designed to be used behind a talking head."
+      "TikTok greenscreen background. Vertical format. Key information overlaid on a photorealistic background. Large text, high contrast. Designed for behind a talking head."
     ),
   },
   quick_tip: {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "TikTok quick tip cover. Vertical format. 'Quick Tip 💡' badge at top. Single actionable insight in bold below. Clean, snappy design. Bright background color."
+      "TikTok quick tip cover. Vertical format. Single actionable insight overlaid boldly on a photorealistic background."
     ),
   },
   series_episode: {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "TikTok series cover. Vertical format. Series branding with episode number badge. Consistent design template feel. Topic text in bold. Dark background with colored accent border."
+      "TikTok series cover. Vertical format. Episode branding with topic text overlaid on a photorealistic background."
     ),
   },
 
@@ -268,7 +268,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "YouTube video thumbnail. Maximum visual impact. Bold uppercase text overlay (3-5 words). High contrast. Vibrant background color. Designed to be readable at small sizes in YouTube sidebar.",
+      "YouTube thumbnail. Maximum visual impact. Bold uppercase text (3-5 words) overlaid on a dramatic photorealistic scene. Readable at small sizes.",
       { dimensions: "16x9" }
     ),
   },
@@ -276,28 +276,28 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "YouTube Shorts cover frame. Vertical format. Bold hook text. Eye-catching gradient background. Large readable typography. Designed for mobile-first vertical viewing."
+      "YouTube Shorts cover. Vertical format. Bold hook text overlaid on a photorealistic background. Mobile-first design."
     ),
   },
   shorts_tip: {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "YouTube Shorts tip cover. Vertical format. 'Quick Tip' badge at top. Main tip text below in bold. Clean, educational aesthetic with a bright accent color."
+      "YouTube Shorts tip cover. Vertical format. Tip text overlaid on a photorealistic educational scene."
     ),
   },
   community_post: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "YouTube Community post graphic. Clean card design with the post's key question or prompt. YouTube-red accents. Engagement-focused. Designed for the Community tab feed."
+      "Photo-centric YouTube Community post. Scene: engaging environment. Key question overlaid on the photograph."
     ),
   },
   video_description: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Video companion graphic. Horizontal presentation-style layout. Video title in bold with supporting description text. Professional design with YouTube-red accent.",
+      "Photo-centric video companion graphic. Scene: professional production setting. Video title overlaid on the photograph.",
       { dimensions: "16x9", format: "presentation" }
     ),
   },
@@ -310,7 +310,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "YouTube end screen card. Professional outro graphic. 'Thanks for watching!' text with subscribe button visual area and next video teaser placeholder. YouTube-red accents. Clean layout.",
+      "YouTube end screen. Professional outro with text overlaid on a photorealistic background. Subscribe prompt and next video teaser.",
       { dimensions: "16x9" }
     ),
   },
@@ -318,7 +318,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "YouTube comment companion graphic. Clean card with the discussion question in bold. 'Join the conversation 💬' prompt. Engagement-focused design. YouTube-red accent."
+      "Photo-centric YouTube comment graphic. Scene: engaging discussion setting. Discussion question overlaid on the photograph."
     ),
   },
 
@@ -330,14 +330,14 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Facebook post companion graphic. Warm, friendly design. Key insight or quote in large text. Gradient background (soft blue-to-teal). Designed to boost engagement alongside a long text post."
+      "Photo-centric Facebook post. Scene: warm, friendly professional environment. Key insight overlaid on the photograph."
     ),
   },
   short_post: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Facebook quick-read graphic. Bold, simple design with the post text as the hero element. Strong single-color background. Maximum readability at any size.",
+      "Photo-centric Facebook quick-read. Scene: bold, simple setting. Short text overlaid on the photograph.",
       { maxLen: 100 }
     ),
   },
@@ -345,7 +345,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Facebook link preview companion. Clean design with article title or hook text. Subtle arrow or link icon suggesting 'click to read more'. Professional layout. Blue accent.",
+      "Photo-centric Facebook link preview. Scene: professional setting. Article title overlaid on the photograph.",
       { dimensions: "4x3", format: "presentation" }
     ),
   },
@@ -353,7 +353,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "cover_frame",
     buildRequest: makeCoverFrameBuilder(
-      "Facebook video cover frame. Horizontal format. Bold hook text overlay. Designed for autoplay preview (sound-off friendly). High contrast, readable at small sizes.",
+      "Facebook video cover. Horizontal format. Bold hook text overlaid on a photorealistic scene. High contrast, readable at small sizes.",
       { dimensions: "16x9" }
     ),
   },
@@ -361,7 +361,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Facebook Live announcement graphic. Vibrant, energetic design with 'LIVE 🔴' badge. Event topic in bold. Exciting, event-style design. Bright gradient background.",
+      "Photo-centric Facebook Live announcement. Scene: energetic event or broadcast setting. Event topic overlaid on the photograph.",
       { dimensions: "4x3", format: "presentation" }
     ),
   },
@@ -369,14 +369,14 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Facebook Group discussion graphic. Community-focused design. Discussion question in bold. Warm, inclusive color palette (teal, soft green). Feels conversational, not promotional."
+      "Photo-centric Facebook Group discussion. Scene: warm, community-focused setting. Discussion question overlaid on the photograph."
     ),
   },
   event_post: {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Facebook event announcement card. Bold event title with calendar icon. Urgency elements. Registration CTA area. Professional event marketing design. Blue-purple gradient.",
+      "Photo-centric Facebook event announcement. Scene: professional event or gathering setting. Event title overlaid on the photograph.",
       { dimensions: "4x3", format: "presentation" }
     ),
   },

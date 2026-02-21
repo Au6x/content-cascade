@@ -1,61 +1,18 @@
 import type { DerivativeContent } from "@/lib/db/schema";
 import type { GammaGenerationRequest, VisualContext } from "./types";
 
-// ─── Dynamic Style System ───────────────────────────────
+// ─── Photo-First Layout System ──────────────────────────
 //
-// Every variation gets a unique visual identity. No two
-// visuals for the same template should look alike.
+// Every card uses a full-bleed photorealistic background image.
+// Text overlays the image with contrast treatment.
+// Variation comes from composition direction, not color palettes.
 
-const COLOR_PALETTES = [
-  { bg: "deep navy (#0A1628)", accent: "electric cyan (#00E5FF)", text: "white" },
-  { bg: "charcoal black (#1A1A2E)", accent: "hot magenta (#FF2E63)", text: "white" },
-  { bg: "rich emerald (#064E3B)", accent: "lime green (#A3E635)", text: "white" },
-  { bg: "midnight purple (#2D1B69)", accent: "golden yellow (#FBBF24)", text: "white" },
-  { bg: "warm slate (#334155)", accent: "coral orange (#FF6B6B)", text: "white" },
-  { bg: "ocean blue (#1E3A5F)", accent: "seafoam mint (#34D399)", text: "white" },
-  { bg: "burnt umber (#7C2D12)", accent: "peach (#FCA5A5)", text: "white" },
-  { bg: "forest dark (#14532D)", accent: "amber (#F59E0B)", text: "white" },
-  { bg: "royal indigo (#312E81)", accent: "rose pink (#FB7185)", text: "white" },
-  { bg: "volcanic red (#7F1D1D)", accent: "ice blue (#67E8F9)", text: "white" },
-];
-
-const GRADIENT_STYLES = [
-  "bold linear gradient from top-left to bottom-right",
-  "dramatic radial gradient from center",
-  "diagonal split with two solid colors",
-  "subtle gradient with a glowing center accent",
-  "mesh-style multi-color gradient",
-  "dark-to-light vertical fade",
-  "duotone gradient with grain texture effect",
-  "aurora borealis-style flowing gradient",
-  "sunset gradient with warm tones shifting across the card",
-  "neon glow gradient with dark edges fading to bright center",
-];
-
-const TYPOGRAPHY_STYLES = [
-  "Ultra-bold condensed sans-serif. All caps. Tight letter-spacing.",
-  "Elegant serif with generous spacing. Mixed case. Sophisticated feel.",
-  "Rounded friendly sans-serif. Bold weight. Approachable and modern.",
-  "Geometric sans-serif with sharp edges. High contrast weights.",
-  "Hand-drawn brush style. Organic, energetic, authentic feel.",
-  "Monospace-inspired clean type. Technical, modern coder aesthetic.",
-  "Extra-wide stretched sans-serif. Impactful and commanding.",
-  "Thin elegant sans with one word in extra-bold for emphasis.",
-  "Stacked typography with words at different sizes creating visual hierarchy.",
-  "Italic serif for quotes, bold sans for statements. Mixed type contrast.",
-];
-
-const LAYOUT_APPROACHES = [
-  "Centered layout with generous whitespace. Text is the hero.",
-  "Off-center asymmetric layout. Text aligned left with a bold accent bar on the right.",
-  "Full-bleed edge-to-edge design. Text overlaps the background boldly.",
-  "Card-within-card layout. Inset panel with contrasting background.",
-  "Split layout with a thin divider line. Header above, body below.",
-  "Diagonal slice layout. Background divided at an angle.",
-  "Floating text with a soft shadow. Layered depth effect.",
-  "Magazine-style layout with a large pull-quote and smaller supporting text.",
-  "Grid-based modular layout. Content in organized blocks.",
-  "Bordered frame layout. Thick decorative border around content.",
+const PHOTO_LAYOUTS = [
+  "Full-bleed background photo filling the entire card edge-to-edge. Bold white text overlaid with a dark gradient overlay at the bottom third for readability. The photo is the HERO element.",
+  "Full-bleed background photo covering the entire card. Text positioned top-left in a semi-transparent dark banner. The photographic image dominates at least 80% of the card.",
+  "Full-bleed cinematic background photo. Large centered text with a subtle dark vignette around the edges. Minimal text, maximum photo impact.",
+  "Full-bleed background photo. Text at the bottom with a frosted-glass bar overlay. The photographic image fills the entire card and is the primary visual.",
+  "Full-bleed background photo with a dramatic dark-to-transparent gradient from bottom. Text anchored at the bottom. Photo visible across the full card.",
 ];
 
 // ─── Image Style Rotation ────────────────────────────────
@@ -89,10 +46,10 @@ function getImageStyle(variationIndex: number): ImageStyleResult {
           source: "aiGenerated",
           model: "imagen-4-pro",
           style:
-            "photorealistic, cinematic lighting, professional DSLR photography, shallow depth of field, golden hour warmth, ultra-high resolution, 8K detail",
+            "photorealistic, cinematic lighting, professional DSLR photography, shallow depth of field, golden hour warmth, ultra-high resolution",
         },
         styleInstructions:
-          "VISUAL STYLE: Cinematic photorealistic imagery. Professional DSLR quality with shallow depth of field, cinematic color grading, and golden-hour warmth. Images should look indistinguishable from professional photography.",
+          "Generate a photorealistic image of a scene relevant to the content topic — real people, real settings. Cinematic DSLR quality with shallow depth of field and warm golden-hour lighting.",
       };
     case 1:
       // Editorial / magazine photography
@@ -101,10 +58,10 @@ function getImageStyle(variationIndex: number): ImageStyleResult {
           source: "aiGenerated",
           model: "flux-1-pro",
           style:
-            "editorial photography, magazine quality, clean composition, professional lighting, commercial advertising style, product photography, crisp detail",
+            "editorial photography, magazine quality, clean composition, professional studio lighting, commercial advertising",
         },
         styleInstructions:
-          "VISUAL STYLE: Editorial magazine photography. Clean, composed shots with professional studio lighting. Think Forbes, Bloomberg, or Harvard Business Review imagery — polished, authoritative, corporate-grade.",
+          "Generate a photorealistic editorial image showing professionals in a modern workplace or industry setting. Clean composition, professional lighting, magazine-quality photography.",
       };
     case 2:
       // Real stock photography — actual photos from Pexels
@@ -113,32 +70,32 @@ function getImageStyle(variationIndex: number): ImageStyleResult {
           source: "pexels",
         },
         styleInstructions:
-          "VISUAL STYLE: Use real stock photography from Pexels. Select images that show real people in professional settings — offices, conference rooms, technology environments. Authentic, diverse, corporate-appropriate photos.",
+          "Select a real stock photo showing real people in professional settings — offices, conference rooms, technology environments. Authentic, diverse representation.",
       };
     case 3:
-      // Dramatic / cinematic dark mood
+      // GPT Image — structured/composed photorealism
       return {
         imageOptions: {
           source: "aiGenerated",
-          model: "imagen-4-pro",
+          model: "gpt-image-1-medium",
           style:
-            "dramatic cinematic photography, moody dark lighting, film noir inspired, high contrast, atmospheric fog, volumetric light rays, professional film quality",
+            "photorealistic, professional photography, well-composed scene, natural lighting, authentic people and environments",
         },
         styleInstructions:
-          "VISUAL STYLE: Dramatic cinematic mood. Dark, atmospheric lighting with volumetric rays and high contrast. Film noir meets modern corporate — sophisticated, powerful, authoritative imagery.",
+          "Generate a photorealistic composed scene relevant to the content. Real people in professional or industry settings. Natural lighting, authentic environment, high production quality.",
       };
     case 4:
     default:
-      // Lifestyle / human-centric photography
+      // Contextual scene composition
       return {
         imageOptions: {
           source: "aiGenerated",
-          model: "flux-1-pro",
+          model: "flux-kontext-pro",
           style:
-            "lifestyle photography, candid natural moments, warm authentic feel, real people, natural light, documentary style, genuine emotion, professional quality",
+            "photorealistic scene, contextual composition, lifestyle photography, candid natural moments, warm authentic feel, real people",
         },
         styleInstructions:
-          "VISUAL STYLE: Warm lifestyle photography. Candid, human-centric shots with natural light. Real people in real settings — authentic, warm, relatable. Documentary-style with professional quality.",
+          "Generate a photorealistic lifestyle scene relevant to the content topic. Candid, natural moments showing real people in real settings. Warm, authentic, relatable photography.",
       };
   }
 }
@@ -152,44 +109,44 @@ function getPhotoRealisticStyle(variationIndex: number): ImageStyleResult {
     {
       model: "imagen-4-pro",
       style:
-        "ultra photorealistic, 8K resolution, professional photography, perfect lighting, commercial quality, award-winning photo",
+        "photorealistic, cinematic lighting, professional DSLR, shallow depth of field, award-winning photo",
       instructions:
-        "Use ultra-photorealistic imagery. Every image should look like an award-winning photograph — perfect lighting, crisp detail, professional composition.",
+        "Generate a photorealistic scene relevant to the content. Professional DSLR quality, cinematic lighting, crisp detail.",
     },
     {
       model: "flux-1-pro",
       style:
-        "cinematic photography, anamorphic lens, film grain, professional color grading, Hollywood production quality",
+        "cinematic photography, anamorphic lens, film grain, Hollywood production quality, dramatic lighting",
       instructions:
-        "Cinematic photography style. Anamorphic lens feel with subtle film grain and Hollywood-grade color grading. Dramatic and aspirational.",
+        "Generate a cinematic photorealistic scene. Anamorphic lens feel, film grain, Hollywood-grade production value.",
+    },
+    {
+      model: "gpt-image-1-medium",
+      style:
+        "photorealistic, professional advertising photography, clean studio lighting, premium commercial quality",
+      instructions:
+        "Generate a high-end photorealistic image. Advertising-quality photography with professional lighting and composition.",
+    },
+    {
+      model: "flux-kontext-pro",
+      style:
+        "documentary photography, authentic candid shot, natural light, photojournalism, real people",
+      instructions:
+        "Generate a documentary-style photorealistic image. Authentic, candid, natural light, real people in real settings.",
     },
     {
       model: "imagen-4-pro",
       style:
-        "high-end advertising photography, luxury brand aesthetic, clean studio lighting, premium product shot quality",
+        "photorealistic landscape, aerial perspective, golden hour, dramatic scale, sweeping vista",
       instructions:
-        "High-end advertising photography. Luxury brand aesthetic with pristine studio lighting. Premium, aspirational, polished.",
-    },
-    {
-      model: "flux-1-pro",
-      style:
-        "documentary photography, authentic candid shot, natural light, photojournalism, raw and real",
-      instructions:
-        "Documentary-style photography. Authentic, candid, photojournalistic. Natural light and real moments captured with professional skill.",
-    },
-    {
-      model: "imagen-4-pro",
-      style:
-        "aerial drone photography, sweeping landscape, golden hour, dramatic scale, breathtaking vista",
-      instructions:
-        "Aerial/landscape photography. Dramatic scale, golden hour lighting, breathtaking vistas. Creates a sense of ambition and vision.",
+        "Generate a sweeping photorealistic landscape or environment shot. Golden hour lighting, dramatic scale.",
     },
   ];
 
   const s = styles[variationIndex % styles.length];
   return {
     imageOptions: { source: "aiGenerated", model: s.model, style: s.style },
-    styleInstructions: `VISUAL STYLE: ${s.instructions}`,
+    styleInstructions: s.instructions,
   };
 }
 
@@ -225,19 +182,14 @@ function getMemeImageStyle(variationIndex: number): ImageStyleResult {
 }
 
 const MEME_FONT_RULE =
-  "TYPOGRAPHY RULE: Use MASSIVE font — text must occupy minimum 40% of the card height. Max 7 words per text section. Text must be readable at thumbnail size (small phone screen). Bold, high-contrast. No small text.";
+  "TYPOGRAPHY RULE: Use MASSIVE font — text must occupy minimum 40% of the card height. Max 7 words per text section. Bold, high-contrast. No small text.";
 
 /**
- * Get a unique visual style string for a given variation index.
- * Deterministic but varied — same index always produces the same style.
+ * Get a photo-first layout direction for a given variation index.
+ * Tells Gamma to use full-bleed photorealistic backgrounds with text overlay.
  */
-function getVariationStyle(variationIndex: number): string {
-  const palette = COLOR_PALETTES[variationIndex % COLOR_PALETTES.length];
-  const gradient = GRADIENT_STYLES[(variationIndex * 3) % GRADIENT_STYLES.length];
-  const typography = TYPOGRAPHY_STYLES[(variationIndex * 7) % TYPOGRAPHY_STYLES.length];
-  const layout = LAYOUT_APPROACHES[(variationIndex * 11) % LAYOUT_APPROACHES.length];
-
-  return `UNIQUE VISUAL STYLE (Variation ${variationIndex + 1}): Background: ${palette.bg} with ${gradient}. Accent color: ${palette.accent}. Text color: ${palette.text}. Typography: ${typography} Layout: ${layout}. This design MUST be visually distinct from all other variations.`;
+function getPhotoLayout(variationIndex: number): string {
+  return PHOTO_LAYOUTS[variationIndex % PHOTO_LAYOUTS.length];
 }
 
 // ─── Carousels ──────────────────────────────────────────
@@ -254,17 +206,18 @@ export function buildCarouselOutlineRequest(
     .map((s) => `## ${s.title}\n\n${s.body || ""}`)
     .join("\n---\n");
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const vi = context.variationIndex ?? 0;
+  const imgStyle = getImageStyle(vi);
 
   return {
     inputText,
-    textMode: "preserve",
+    textMode: "condense",
     format: "presentation",
     numCards: slides.length,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `Professional LinkedIn carousel slide deck. ${style} Category: ${formatPillar(context.pillar)}. First slide is a bold title slide. Last slide is a CTA. Each content slide has a numbered heading and supporting body text. Use high-quality background photography that relates to the content topic.`,
-    imageOptions: { source: "aiGenerated", model: "flux-1-pro", style: "professional corporate photography, clean composition, subtle background, supports text overlay" },
+    additionalInstructions: `This is a photo-centric LinkedIn carousel. Use the image as a BACKGROUND that covers each slide. Keep text minimal on each slide — short headlines overlaid on the photos. Dark overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}. First slide: bold title with hero photo. Last slide: CTA.`,
+    imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "4x3" },
   };
 }
@@ -281,17 +234,18 @@ export function buildCarouselEduRequest(
     .map((s, i) => `## Step ${i + 1}: ${s.title}\n\n${s.body || ""}`)
     .join("\n---\n");
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const vi = context.variationIndex ?? 0;
+  const imgStyle = getImageStyle(vi);
 
   return {
     inputText,
-    textMode: "preserve",
+    textMode: "condense",
     format: "social",
     numCards: slides.length,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `Instagram educational carousel. ${style} Each slide has a step number badge, headline, and supporting text. Category: ${formatPillar(context.pillar)}. First slide is a bold title. Last slide is a CTA with "SWIPE" prompt. Use photorealistic background imagery that matches the educational content.`,
-    imageOptions: { source: "aiGenerated", model: "imagen-4-pro", style: "photorealistic, educational, clean aesthetic, Instagram-worthy, professional photography" },
+    additionalInstructions: `This is a photo-centric Instagram educational carousel. Use the image as a BACKGROUND that covers each slide. Keep text minimal — short headlines overlaid on the photos. Dark overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}. First slide: bold title. Last slide: CTA.`,
+    imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
   };
 }
@@ -308,17 +262,18 @@ export function buildCarouselStoryRequest(
     .map((s, i) => `## Chapter ${i + 1}: ${s.title}\n\n${s.body || ""}`)
     .join("\n---\n");
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const vi = context.variationIndex ?? 0;
+  const imgStyle = getPhotoRealisticStyle(vi);
 
   return {
     inputText,
-    textMode: "preserve",
+    textMode: "condense",
     format: "social",
     numCards: slides.length,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `Instagram storytelling carousel with a cinematic, narrative feel. ${style} Large narrative text with decorative quotation marks on key slides. Category: ${formatPillar(context.pillar)}. Atmospheric and engaging. Use cinematic photorealistic backgrounds that create mood and emotion.`,
-    imageOptions: { source: "aiGenerated", model: "imagen-4-pro", style: "cinematic photography, moody atmospheric, storytelling, film-quality, dramatic lighting, emotional" },
+    additionalInstructions: `This is a photo-centric Instagram storytelling carousel. Use the image as a BACKGROUND that covers each slide. Keep text minimal — short headlines overlaid on the photos. Dark cinematic overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}. Atmospheric, immersive.`,
+    imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
   };
 }
@@ -333,7 +288,7 @@ export function buildDrakeRequest(
   const bottomText = (content.bottom_text as string) || "";
   if (!topText && !bottomText) return null;
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const memeImg = getMemeImageStyle(context.variationIndex ?? 0);
 
   return {
     inputText: `## ❌ ${topText}\n\n## ✅ ${bottomText}`,
@@ -341,7 +296,7 @@ export function buildDrakeRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Drake meme comparison card. Split into two halves — top half is the rejected option, bottom half is the approved option. ${style} Strong visual contrast between reject and approve sections. ${MEME_FONT_RULE} Use a contextual AI-generated background image that reflects the meme's topic.`,
+    additionalInstructions: `Drake meme comparison card. Split into two halves — top is rejected, bottom is approved. LAYOUT: Full-bleed background image filling the entire card. Strong visual contrast between reject and approve. ${MEME_FONT_RULE}`,
     imageOptions: getMemeImageStyle(context.variationIndex ?? 0).imageOptions,
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
@@ -359,7 +314,7 @@ export function buildDistractedRequest(
   const left = panels[0];
   const center = panels[1];
   const right = panels[2] || { label: "The New Thing", text: "" };
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const memeImg = getMemeImageStyle(context.variationIndex ?? 0);
 
   return {
     inputText: `## ${left.label || "The Old Way"}\n${left.text}\n\n## ${center.label || "You"}\n${center.text}\n\n## ${right.label || "The New Thing"}\n${right.text}`,
@@ -367,8 +322,8 @@ export function buildDistractedRequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Distracted boyfriend meme layout. Three-column comparison. ${style} Left column is the old boring option, center is the audience, right is the exciting new thing. Clear labels. ${MEME_FONT_RULE} Use a contextual background image that fits the topic.`,
-    imageOptions: getMemeImageStyle(context.variationIndex ?? 0).imageOptions,
+    additionalInstructions: `Distracted boyfriend meme layout. Three-column comparison. LAYOUT: Full-bleed background image. Left is old boring option, center is audience, right is exciting new thing. ${MEME_FONT_RULE}`,
+    imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
   };
@@ -383,7 +338,6 @@ export function buildExpandingBrainRequest(
 
   const levels = ["🧠 Basic", "💡 Smart", "🌌 Galaxy Brain", "✨ Transcended"];
   const items = panels.slice(0, 4);
-  const style = getVariationStyle(context.variationIndex ?? 0);
 
   const inputText = items
     .map((text, i) => `## ${levels[i] || `Level ${i + 1}`}\n\n${text}`)
@@ -395,8 +349,8 @@ export function buildExpandingBrainRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Expanding brain meme format. Four horizontal panels stacked vertically, escalating in intensity. ${style} Visual intensity and font weight increase with each level. ${MEME_FONT_RULE} Add a glowing brain or cosmic AI-generated background image that escalates in brightness/intensity.`,
-    imageOptions: { source: "aiGenerated", model: "imagen-4-pro", style: "glowing brain, cosmic escalation, neon plasma, dramatic volumetric lighting, photorealistic sci-fi" },
+    additionalInstructions: `Expanding brain meme. Four panels stacked vertically, escalating intensity. LAYOUT: Full-bleed photorealistic background that escalates from normal to cosmic. ${MEME_FONT_RULE}`,
+    imageOptions: { source: "aiGenerated", model: "imagen-4-pro", style: "photorealistic escalation, cosmic brain, dramatic volumetric lighting, neon plasma glow" },
     cardOptions: { dimensions: "4x5" },
     textOptions: { amount: "brief" },
   };
@@ -410,7 +364,7 @@ export function buildThisIsFineRequest(
   const bottomText = (content.bottom_text as string) || "";
   if (!topText && !bottomText) return null;
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const memeImg = getMemeImageStyle(context.variationIndex ?? 0);
 
   return {
     inputText: `## 🔥 ${topText}\n\n💬 "${bottomText}"`,
@@ -418,8 +372,8 @@ export function buildThisIsFineRequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `"This is fine" meme card. ${style} The situation text at top, a speech bubble at center-bottom with the calm response. Fire emoji decorations. The contrast between chaos and calm is the humor. ${MEME_FONT_RULE} Use a chaotic fire/office background image to reinforce the joke.`,
-    imageOptions: getMemeImageStyle(context.variationIndex ?? 0).imageOptions,
+    additionalInstructions: `"This is fine" meme card. LAYOUT: Full-bleed photorealistic background of a chaotic office/fire scene. Situation text at top, calm speech bubble at bottom. ${MEME_FONT_RULE}`,
+    imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
   };
@@ -435,7 +389,7 @@ export function buildChangeMyMindRequest(
     "";
   if (!statement) return null;
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const memeImg = getMemeImageStyle(context.variationIndex ?? 0);
 
   return {
     inputText: `## ${statement}\n\n**CHANGE MY MIND**`,
@@ -443,8 +397,8 @@ export function buildChangeMyMindRequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `"Change my mind" meme card. ${style} A large prominent sign/placard with the bold statement. "CHANGE MY MIND" label in a pill badge below. The statement is the dominant visual element. ${MEME_FONT_RULE} Use a contextual background image that relates to the topic being debated.`,
-    imageOptions: getMemeImageStyle(context.variationIndex ?? 0).imageOptions,
+    additionalInstructions: `"Change my mind" meme card. LAYOUT: Full-bleed photorealistic background of a debate/outdoor scene. Large bold statement text overlaid. "CHANGE MY MIND" badge below. ${MEME_FONT_RULE}`,
+    imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
   };
@@ -461,7 +415,7 @@ export function buildIsThisARequest(
   const person = panels[0];
   const thing = panels[1];
   const caption = panels[2];
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const memeImg = getMemeImageStyle(context.variationIndex ?? 0);
 
   return {
     inputText: `## ${person.label || "Person"}\n${person.text}\n\n## ${thing.label || "Thing"}\n${thing.text}\n\n## Is this a ${caption?.text || "..."}?`,
@@ -469,8 +423,8 @@ export function buildIsThisARequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `"Is this a...?" meme layout. ${style} Three labeled regions. Person on the left, thing on the right, "Is this a...?" question at the bottom. ${MEME_FONT_RULE} Use a contextual AI-generated background matching the meme's topic.`,
-    imageOptions: getMemeImageStyle(context.variationIndex ?? 0).imageOptions,
+    additionalInstructions: `"Is this a...?" meme layout. LAYOUT: Full-bleed photorealistic background. Three labeled regions — person left, thing right, question at bottom. ${MEME_FONT_RULE}`,
+    imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
   };
@@ -486,7 +440,7 @@ export function buildTwoButtonsRequest(
 
   const buttonA = panels[0];
   const buttonB = panels[1];
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const memeImg = getMemeImageStyle(context.variationIndex ?? 0);
 
   return {
     inputText: `## 🔵 ${buttonA.label || "Option A"}\n${buttonA.text}\n\n## 🔴 ${buttonB.label || "Option B"}\n${buttonB.text}`,
@@ -494,8 +448,8 @@ export function buildTwoButtonsRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Two buttons meme card. ${style} Two large button-shaped rectangles side by side. A "VS" badge between them. The humor is in the impossible choice. ${MEME_FONT_RULE} Use a sweating/stressed background image to reinforce the difficult decision humor.`,
-    imageOptions: getMemeImageStyle(context.variationIndex ?? 0).imageOptions,
+    additionalInstructions: `Two buttons meme card. LAYOUT: Full-bleed photorealistic background of a stressed/sweating scene. Two large buttons side by side with VS badge. ${MEME_FONT_RULE}`,
+    imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
   };
@@ -511,7 +465,7 @@ export function buildCustomConceptRequest(
     context.title;
   if (!displayText) return null;
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const memeImg = getMemeImageStyle(context.variationIndex ?? 0);
 
   return {
     inputText: displayText,
@@ -519,8 +473,8 @@ export function buildCustomConceptRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Custom meme concept card. ${style} Category: ${formatPillar(context.pillar)}. Creative, eye-catching. Large centered text as the focal point. Shareable and visually striking. ${MEME_FONT_RULE} Use a contextual, vivid AI-generated background image that reinforces the meme concept.`,
-    imageOptions: getMemeImageStyle(context.variationIndex ?? 0).imageOptions,
+    additionalInstructions: `Custom meme concept card. LAYOUT: Full-bleed photorealistic background relevant to the topic. Large bold centered text overlaid. Category: ${formatPillar(context.pillar)}. ${MEME_FONT_RULE}`,
+    imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
   };
@@ -553,17 +507,18 @@ export function buildThumbnailRequest(
     )
     .join("\n---\n");
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const vi = context.variationIndex ?? 0;
+  const imgStyle = getPhotoRealisticStyle(vi);
 
   return {
     inputText,
-    textMode: "preserve",
+    textMode: "condense",
     format: "presentation",
     numCards: 3,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `YouTube thumbnail concepts. Maximum visual impact. Bold uppercase text readable at small sizes. ${style} Category: ${formatPillar(context.pillar)}. Thick text, high energy. Include a dramatic, high-contrast photorealistic background image behind the text — faces showing emotion, action shots, or vivid scenes that create curiosity. Text MUST be large, bold, and readable at phone size.`,
-    imageOptions: { source: "aiGenerated", model: "imagen-4-pro", style: "dramatic photorealistic, high-contrast, cinematic, YouTube thumbnail, expressive faces, action shot, 8K quality" },
+    additionalInstructions: `These are photo-centric YouTube thumbnail concepts. Use the image as a BACKGROUND that covers each slide. Keep text to absolute minimum — bold uppercase headlines overlaid on the photos. Dark overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}. The photo IS the thumbnail.`,
+    imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "16x9" },
     textOptions: { amount: "brief" },
   };
@@ -581,16 +536,19 @@ export function buildSocialGraphicRequest(
     context.title;
   if (!displayText) return null;
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const vi = context.variationIndex ?? 0;
+  const imgStyle = getImageStyle(vi);
+
+  const inputText = `A photorealistic photograph related to: ${context.title}. Overlay text: ${displayText.slice(0, 80)}`;
 
   return {
-    inputText: displayText,
-    textMode: "preserve",
+    inputText,
+    textMode: "generate",
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `Instagram social graphic post. ${style} Large decorative quotation mark. Centered content text. Category: ${formatPillar(context.pillar)}. Include a beautiful, photorealistic AI-generated background image that complements the message. The image should be subtle and slightly blurred so the text overlay remains crisp and readable. Minimal, clean, and shareable.`,
-    imageOptions: { source: "aiGenerated", model: "imagen-4-pro", style: "photorealistic, aesthetic, Instagram-worthy, soft focus bokeh, warm tones, professional photography" },
+    additionalInstructions: `This is a photo-centric Instagram social graphic. Use the image as a BACKGROUND that covers the entire card. Keep text to an absolute minimum — just a short headline overlaid on the photo. Dark overlay for text readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
+    imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
   };
@@ -600,6 +558,8 @@ export function buildSocialGraphicRequest(
 
 /**
  * Factory: single-card social post graphic.
+ * Uses textMode "generate" so Gamma creates a photo-dominant layout
+ * with minimal text overlaid on the photograph.
  */
 export function makePostGraphicBuilder(
   baseStyle: string,
@@ -620,16 +580,19 @@ export function makePostGraphicBuilder(
       context.title;
     if (!displayText) return null;
 
-    const style = getVariationStyle(context.variationIndex ?? 0);
-    const imgStyle = getImageStyle(context.variationIndex ?? 0);
+    const vi = context.variationIndex ?? 0;
+    const imgStyle = getImageStyle(vi);
+
+    // Build image-first inputText: scene description + overlay text
+    const inputText = `A photorealistic photograph related to: ${context.title}. Overlay text: ${displayText.slice(0, 80)}`;
 
     return {
-      inputText: displayText,
-      textMode: "preserve",
+      inputText,
+      textMode: "generate",
       format: options?.format ?? "social",
       numCards: 1,
       exportAs: "pdf",
-      additionalInstructions: `${baseStyle} ${style} Category: ${formatPillar(context.pillar)}. ${imgStyle.styleInstructions} Image should be subtle enough that text remains readable — use slight blur or dark overlay to maintain text contrast.`,
+      additionalInstructions: `This is a photo-centric social media post. ${baseStyle} Use the image as a BACKGROUND that covers the entire card. The card style should use the background image layout with the photo filling the card. Keep text to an absolute minimum — just a short headline overlaid on the photo. Dark overlay for text readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: options?.dimensions ?? "1x1" },
       textOptions: { amount: "brief" },
@@ -639,6 +602,7 @@ export function makePostGraphicBuilder(
 
 /**
  * Factory: thread or article header graphic.
+ * Uses textMode "generate" for photo-dominant layout.
  */
 export function makeThreadHeaderBuilder(baseStyle: string) {
   return (
@@ -653,16 +617,18 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
       context.title;
     if (!hookText) return null;
 
-    const style = getVariationStyle(context.variationIndex ?? 0);
-    const imgStyle = getPhotoRealisticStyle(context.variationIndex ?? 0);
+    const vi = context.variationIndex ?? 0;
+    const imgStyle = getPhotoRealisticStyle(vi);
+
+    const inputText = `A photorealistic photograph related to: ${context.title}. Overlay text: ${hookText.slice(0, 80)}`;
 
     return {
-      inputText: hookText,
-      textMode: "preserve",
+      inputText,
+      textMode: "generate",
       format: "social",
       numCards: 1,
       exportAs: "pdf",
-      additionalInstructions: `${baseStyle} ${style} Category: ${formatPillar(context.pillar)}. ${imgStyle.styleInstructions} Image creates visual interest and stops the scroll. Text must remain readable over the image with strong contrast or dark overlay.`,
+      additionalInstructions: `This is a photo-centric social media post. ${baseStyle} Use the image as a BACKGROUND that covers the entire card. Keep text to an absolute minimum — just a short headline overlaid on the photo. Dark overlay for text readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: "4x3" },
       textOptions: { amount: "brief" },
@@ -672,6 +638,7 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
 
 /**
  * Factory: video cover frame.
+ * Uses textMode "generate" for photo-dominant layout.
  */
 export function makeCoverFrameBuilder(
   baseStyle: string,
@@ -688,16 +655,18 @@ export function makeCoverFrameBuilder(
       context.title;
     if (!hookText) return null;
 
-    const style = getVariationStyle(context.variationIndex ?? 0);
-    const imgStyle = getPhotoRealisticStyle(context.variationIndex ?? 0);
+    const vi = context.variationIndex ?? 0;
+    const imgStyle = getPhotoRealisticStyle(vi);
+
+    const inputText = `A photorealistic photograph related to: ${context.title}. Overlay text: ${hookText.slice(0, 80)}`;
 
     return {
-      inputText: hookText,
-      textMode: "preserve",
+      inputText,
+      textMode: "generate",
       format: "social",
       numCards: 1,
       exportAs: "pdf",
-      additionalInstructions: `${baseStyle} ${style} Category: ${formatPillar(context.pillar)}. ${imgStyle.styleInstructions} Text must be large and readable over the image with strong contrast — use dark gradient overlay if needed.`,
+      additionalInstructions: `This is a photo-centric cover frame. ${baseStyle} Use the image as a BACKGROUND that covers the entire card. Keep text to an absolute minimum — just a short headline overlaid on the photo. Dark overlay for text readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: options?.dimensions ?? "9x16" },
       textOptions: { amount: "brief" },
@@ -720,17 +689,18 @@ export function buildStorySeriesRequest(
     .map((s, i) => `## Story ${i + 1}: ${s.title}\n\n${s.body || ""}`)
     .join("\n---\n");
 
-  const style = getVariationStyle(context.variationIndex ?? 0);
+  const vi = context.variationIndex ?? 0;
+  const imgStyle = getPhotoRealisticStyle(vi);
 
   return {
     inputText,
-    textMode: "preserve",
+    textMode: "condense",
     format: "social",
     numCards: Math.min(slides.length, 7),
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `Instagram Story series frames. Bold vertical design. ${style} Each frame has a different vibrant photorealistic background that matches the story's mood. Large text with strong contrast overlaying the image. Category: ${formatPillar(context.pillar)}. Each frame should feel immersive and visually rich with real-photo quality.`,
-    imageOptions: { source: "aiGenerated", model: "imagen-4-pro", style: "photorealistic, immersive, cinematic, vibrant, Instagram Stories, vertical composition, dramatic lighting" },
+    additionalInstructions: `This is a photo-centric Instagram Story series. Use the image as a BACKGROUND that covers each card. Keep text minimal on each frame — just short headlines overlaid on the photos. Dark overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
+    imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "9x16" },
     textOptions: { amount: "brief" },
   };
