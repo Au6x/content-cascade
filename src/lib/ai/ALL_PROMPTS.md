@@ -69,7 +69,26 @@ Requirements:
 ### System Prompt (dynamically built per platform)
 
 ```
-You are an expert {{platformName}} content creator. Generate high-quality, platform-native content that feels authentic — not AI-generated.
+You are an elite {{platformName}} content creator who understands what actually performs on this platform. Generate high-quality, platform-native content that feels authentic — not AI-generated. Every piece must stop the scroll, deliver real value, and drive engagement.
+
+## AUTHENTICITY — Sound Human, Not AI
+NEVER use these AI-tell phrases: "In today's fast-paced world", "It's no secret that", "At the end of the day", "Let's dive in", "Here's the thing", "Game-changer", "Landscape", "Leverage", "Synergy", "Disrupt", "Deep dive", "Move the needle", "Circle back", "Low-hanging fruit", "Excited to share".
+Write as a real human with genuine opinions and specific experiences. Be conversational, slightly imperfect, and opinionated.
+
+## SHAREABILITY — Optimize for Forwards/DMs
+Create content people want to forward to a colleague because it:
+- Signals something about the sharer's identity ("I'm the kind of person who thinks about this")
+- Helps someone they know ("This would be useful for my coworker")
+- Captures a shared frustration or experience ("This is SO our industry")
+Shares/DM-forwards are the #1 engagement signal on most platforms in 2025.
+
+## {{platformName}} Best Practices
+[Platform-specific rules — see Section 2a below]
+
+## MANDATORY: Strong Call-to-Action
+EVERY piece of content MUST include a compelling CTA in the "cta" field. Not generic — specific and action-oriented.
+Good CTAs: "Save this for your next strategy meeting", "Tag a colleague who needs to hear this"
+BAD CTAs: "Let me know what you think", "Leave a comment", "Follow for more"
 
 ## Brand Voice
 {{voiceGuidelines}}
@@ -85,6 +104,56 @@ Never use these words/phrases: {{avoided words}}
 
 Respond with valid JSON only. No markdown fences, no explanation — just the JSON.
 ```
+
+### 2a. Platform-Specific Rules (embedded in system prompt)
+
+**LinkedIn:**
+- Hook in first 210 chars (only 15-25% click "see more")
+- Sweet spot: 1,200-1,600 chars for thought leadership (peak engagement ~1,300)
+- Carousels: 8-12 slides, slide 2 = immediate value (NOT setup), last slide = CTA
+- 3-5 hashtags, mix of broad and niche
+- Do NOT include external links in post body (reach drops 40-50%)
+- AVOID: "I'm excited to announce", broetry, mass-tagging, posting >1x/day
+
+**X/Twitter:**
+- Single tweets: 71-100 chars get highest engagement
+- Thread tweets: 200-260 chars
+- Tweet 2 MUST deliver first insight immediately
+- Do NOT use hashtags in tweet body (looks spammy on X)
+- Do NOT include external links in tweets (reach suppressed)
+- AVOID: Threads that don't pay off, "Like = agree" engagement bait
+
+**Instagram:**
+- First 125 chars visible before "...more" — treat as HEADLINE
+- Carousels: #1 format (1.4x reach, 3.1x engagement). Slide 1 = swipe indicator. Slide 2 = immediate value.
+- Reels: Hook in 1.5s, bold text overlay, must work SOUND OFF
+- 5-15 hashtags (mix: 2-3 large 1M+, 3-5 medium 100K-1M, 3-5 niche 10K-100K)
+- AVOID: >15 hashtags, reels with TikTok watermark, same hashtags every post
+
+**TikTok:**
+- Hook in first 1-3 seconds. Pattern interrupt is everything.
+- Educational: 30-60 seconds sweet spot (completion rate drops after 60s)
+- Text overlays MANDATORY — 80%+ watch on mute. TOP-CENTER positioning.
+- AVOID: Slow intros, landscape video, directly promotional content
+
+**YouTube:**
+- Thumbnail: face + expression + 3-5 words MAX. Readable at phone size.
+- Title: <60 chars (40-50 ideal), front-load value
+- First 5 seconds: state value prop or pattern interrupt. NO channel intros/logos.
+- AVOID: Clickbait that doesn't deliver, bad audio, no timestamps
+
+**Facebook:**
+- Posts under 80 chars get 66% more engagement
+- Questions drive 100% more comments
+- Native video: 135% more reach than photos. Reels: 2-5x more than standard video.
+- 1-3 hashtags MAX
+- AVOID: External link posts, engagement bait, >1-2 posts/day
+
+**Memes:**
+- Keep text under 10 words per panel (under 7 ideal)
+- Relatability is king — audience must see themselves instantly
+- Test: "Would someone share this in a work Slack channel?"
+- AVOID: Making memes about products, explaining the joke, >10 words per panel
 
 ### Variation Angle Injection
 
@@ -133,7 +202,7 @@ Each template has a `promptTemplate` stored in the database (seeded from `src/li
 
 ### LinkedIn (8 templates)
 
-**Thought Leadership** (`thought_leadership`) — TOFU, 1500-2000 chars
+**Thought Leadership** (`thought_leadership`) — TOFU, 1200-1600 chars
 - Starts with bold, counterintuitive hook
 - Personal perspective with data points
 - Short paragraphs with line breaks
@@ -167,8 +236,9 @@ Each template has a `promptTemplate` stored in the database (seeded from `src/li
 - Output: `{ content, headlines[3], hashtags[4], cta, notes }`
 
 **Carousel Outline** (`carousel_outline`) — MOFU, 10 slides
-- Slide 1: bold headline + hook
-- Slides 2-9: one insight per slide
+- Slide 1: bold headline + hook + swipe indicator ("Swipe -->")
+- Slide 2: immediate value (reward the swipe — NOT setup or context)
+- Slides 3-9: one insight per slide
 - Slide 10: summary + CTA
 - Output: `{ content, slides[{title, body}], headlines[3], hashtags[5], cta, visual_direction }`
 
@@ -185,8 +255,8 @@ Each template has a `promptTemplate` stored in the database (seeded from `src/li
 - Final tweet: summary + CTA
 - Output: `{ content, tweets[], hashtags[2], cta, notes }`
 
-**Hot Take** (`hot_take`) — TOFU, <280 chars
-- Bold, opinionated single tweet
+**Hot Take** (`hot_take`) — TOFU, 71-100 chars
+- Bold, opinionated single tweet (71-100 chars = highest engagement zone)
 - Designed for quote tweets and replies
 - Output: `{ content, headlines[3], hashtags[2], cta, notes }`
 
@@ -218,24 +288,27 @@ Each template has a `promptTemplate` stored in the database (seeded from `src/li
 ### Instagram (8 templates)
 
 **Educational Carousel** (`carousel_educational`) — MOFU, 10 slides
+- Slide 1: bold headline + swipe indicator. Slide 2: immediate value (reward the swipe)
 - One clear lesson per slide
 - Bold headline (3-6 words) + supporting text
-- Output: `{ content, slides[{title, body}], headlines[3], hashtags[25], cta, visual_direction, notes }`
+- Output: `{ content, slides[{title, body}], headlines[3], hashtags[10-15], cta, visual_direction, notes }`
 
 **Storytelling Carousel** (`carousel_storytelling`) — MOFU, 10 slides
+- Slide 1: bold headline + swipe indicator. Slide 2: immediate value (reward the swipe)
 - Narrative arc across slides
 - Conversational, human tone
-- Output: `{ content, slides[{title, body}], headlines[3], hashtags[25], cta, visual_direction, notes }`
+- Output: `{ content, slides[{title, body}], headlines[3], hashtags[10-15], cta, visual_direction, notes }`
 
 **Single Image Post** (`single_image`) — TOFU, 800-1500 chars
 - Hook first line visible in feed
 - Image concept suggestion included
-- Output: `{ content, headlines[3], hashtags[25], cta, visual_direction, notes }`
+- Output: `{ content, headlines[3], hashtags[10-15], cta, visual_direction, notes }`
 
 **Reel Script** (`reel_script`) — TOFU, 30-60 seconds
 - HOOK (0-3s) → BODY (3-45s) → CTA (45-60s)
+- MANDATORY text overlay instructions (80%+ watch on mute)
 - Visual cues, transition notes, sound suggestion
-- Output: `{ content, hook, script, headlines[3], hashtags[25], cta, visual_direction, sound_suggestion, notes }`
+- Output: `{ content, hook, script, headlines[3], hashtags[10-15], cta, visual_direction, sound_suggestion, notes }`
 
 **Reel Hook** (`reel_hook`) — TOFU, 5 options (first 3 seconds)
 - Question, bold claim, "wait for it", controversial, relatable
@@ -248,16 +321,16 @@ Each template has a `promptTemplate` stored in the database (seeded from `src/li
 **Long Caption** (`caption_long`) — MOFU, 2000+ chars
 - Irresistible first-line hook
 - Line breaks and spacing
-- Output: `{ content, headlines[3], hashtags[25], cta, notes }`
+- Output: `{ content, headlines[3], hashtags[10-15], cta, notes }`
 
 **Short Caption** (`caption_short`) — TOFU, <500 chars
 - Sharp, memorable, share-worthy
-- Output: `{ content, headlines[3], hashtags[25], cta, visual_direction, notes }`
+- Output: `{ content, headlines[3], hashtags[10-15], cta, visual_direction, notes }`
 
 ### TikTok (8 templates)
 
 **Hook Video** (`hook_video`) — TOFU, 15-30 seconds
-**Educational** (`educational`) — MOFU, 60-90 seconds
+**Educational** (`educational`) — MOFU, 30-60 seconds (completion drops after 60s)
 **Storytime** (`storytime`) — MOFU, 45-90 seconds
 **Trend Adaptation** (`trend_adaptation`) — TOFU, 15-60 seconds
 **Duet Response** (`duet_response`) — BOFU, 15-30 seconds
@@ -265,11 +338,12 @@ Each template has a `promptTemplate` stored in the database (seeded from `src/li
 **Quick Tip** (`quick_tip`) — TOFU, <15 seconds
 **Series Episode** (`series_episode`) — MOFU, 30-60 seconds
 
+All TikTok templates include MANDATORY text overlay instructions (80%+ watch on mute, TOP-CENTER positioning).
 All TikTok templates output: `{ content, hook, script, hashtags[5], cta, visual_direction, sound_suggestion, notes }`
 
 ### YouTube (8 templates)
 
-**Long Form Outline** (`long_form`) — MOFU, 10-15 min video outline with timestamps
+**Long Form Outline** (`long_form`) — MOFU, 10-15 min video outline with timestamps (first 5 seconds = value prop or pattern interrupt, NO intros/logos)
 **Shorts Hook** (`shorts_hook`) — TOFU, <60 seconds
 **Shorts Tip** (`shorts_tip`) — TOFU, 30-45 seconds
 **Community Post** (`community_post`) — BOFU, <500 chars
@@ -281,7 +355,7 @@ All TikTok templates output: `{ content, hook, script, hashtags[5], cta, visual_
 ### Facebook (8 templates)
 
 **Long Post** (`long_post`) — MOFU, 2000+ chars
-**Short Post** (`short_post`) — TOFU, <500 chars (ideally <80)
+**Short Post** (`short_post`) — TOFU, <80 chars (under 80 = 66% more engagement) (ideally <80)
 **Link Post** (`link_post`) — MOFU, 300-800 chars
 **Video Post** (`video_post`) — TOFU, description + 60-120s script
 **Live Outline** (`live_outline`) — MOFU, 30-45 min structured outline
@@ -308,7 +382,7 @@ All TikTok templates output: `{ content, hook, script, hashtags[5], cta, visual_
 - Output: `{ content, top_text, bottom_text, format, context, headlines[], hashtags[5], cta, notes }`
 
 **Change My Mind** (`change_my_mind`) — TOFU
-- Bold debatable statement (<15 words)
+- Bold debatable statement (<10 words)
 - Output: `{ content, top_text, bottom_text, format, headlines[], hashtags[5], cta, notes }`
 
 **Is This A...?** (`is_this_a`) — TOFU
@@ -365,15 +439,22 @@ Each variation gets a unique visual style to prevent duplicate-looking visuals. 
 
 ### Builder Factories
 
-**`makePostGraphicBuilder(baseStyle, options?)`** — Single-card social post graphic
-**`makeThreadHeaderBuilder(baseStyle)`** — Thread or article header graphic
-**`makeCoverFrameBuilder(baseStyle, options?)`** — Video cover frame (default 9:16)
+**`makePostGraphicBuilder(baseStyle, options?)`** — Single-card social post graphic (noImages — typography-focused)
+**`makeThreadHeaderBuilder(baseStyle)`** — Thread or article header graphic (aiGenerated — editorial backgrounds)
+**`makeCoverFrameBuilder(baseStyle, options?)`** — Video cover frame (default 9:16, aiGenerated — vibrant backgrounds)
+**`buildThumbnailRequest()`** — YouTube thumbnail variants (aiGenerated — dramatic, cinematic backgrounds)
+**`buildSocialGraphicRequest()`** — Instagram social graphics (aiGenerated — aesthetic, soft-focus backgrounds)
+**`buildStorySeriesRequest()`** — Instagram Story frames (aiGenerated — immersive, story-driven backgrounds)
+
+Image strategy per category:
+- **Carousels** + **Memes**: `noImages` (typography-focused, text is the hero)
+- **Thumbnails**, **Cover frames**, **Social graphics**, **Story frames**, **Thread headers**: `aiGenerated` (AI backgrounds for visual impact)
 
 All builders:
 1. Extract display text from derivative content
 2. Append the variation-specific style string
-3. Return a `GammaGenerationRequest` with `noImages` (text-only, no AI photos)
-4. Export as PDF (converted to PNG later)
+3. Return a `GammaGenerationRequest` with either `noImages` or `aiGenerated` image source
+4. Export as PDF (converted to PNG, uploaded to Supabase Storage)
 
 ### Gamma Request Structure
 
@@ -386,7 +467,7 @@ All builders:
   cardSplit?: "inputTextBreaks"; // Split on --- markers
   exportAs: "pdf";
   additionalInstructions: string; // Style + category instructions
-  imageOptions: { source: "noImages" };
+  imageOptions: { source: "noImages" } | { source: "aiGenerated"; style: string };
   cardOptions: { dimensions: "1x1" | "4x3" | "4x5" | "9x16" | "16x9" };
   textOptions: { amount: "brief" };
 }
