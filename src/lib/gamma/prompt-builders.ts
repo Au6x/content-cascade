@@ -3,17 +3,12 @@ import type { GammaGenerationRequest, VisualContext } from "./types";
 
 // ─── Photo-First Layout System ──────────────────────────
 //
-// Every card uses a full-bleed photorealistic background image.
-// Text overlays the image with contrast treatment.
-// Variation comes from composition direction, not color palettes.
+// Proven formula: large photorealistic image at top (~60%),
+// headline text at bottom (~40%). Simple, direct layout
+// instructions produce the best results from Gamma.
 
-const PHOTO_LAYOUTS = [
-  "Full-bleed background photo filling the entire card edge-to-edge. Bold white text overlaid with a dark gradient overlay at the bottom third for readability. The photo is the HERO element.",
-  "Full-bleed background photo covering the entire card. Text positioned top-left in a semi-transparent dark banner. The photographic image dominates at least 80% of the card.",
-  "Full-bleed cinematic background photo. Large centered text with a subtle dark vignette around the edges. Minimal text, maximum photo impact.",
-  "Full-bleed background photo. Text at the bottom with a frosted-glass bar overlay. The photographic image fills the entire card and is the primary visual.",
-  "Full-bleed background photo with a dramatic dark-to-transparent gradient from bottom. Text anchored at the bottom. Photo visible across the full card.",
-];
+const LAYOUT_INSTRUCTION =
+  "Layout: large photorealistic image taking up the top 60% of the card, with headline text in the bottom 40%. Clean, modern design.";
 
 // ─── Image Style Rotation ────────────────────────────────
 //
@@ -184,13 +179,6 @@ function getMemeImageStyle(variationIndex: number): ImageStyleResult {
 const MEME_FONT_RULE =
   "TYPOGRAPHY RULE: Use MASSIVE font — text must occupy minimum 40% of the card height. Max 7 words per text section. Bold, high-contrast. No small text.";
 
-/**
- * Get a photo-first layout direction for a given variation index.
- * Tells Gamma to use full-bleed photorealistic backgrounds with text overlay.
- */
-function getPhotoLayout(variationIndex: number): string {
-  return PHOTO_LAYOUTS[variationIndex % PHOTO_LAYOUTS.length];
-}
 
 // ─── Carousels ──────────────────────────────────────────
 
@@ -216,7 +204,7 @@ export function buildCarouselOutlineRequest(
     numCards: slides.length,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `This is a photo-centric LinkedIn carousel. Use the image as a BACKGROUND that covers each slide. Keep text minimal on each slide — short headlines overlaid on the photos. Dark overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}. First slide: bold title with hero photo. Last slide: CTA.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} LinkedIn carousel. The image should show real people in a professional setting. First slide: bold title. Last slide: CTA.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "4x3" },
   };
@@ -244,7 +232,7 @@ export function buildCarouselEduRequest(
     numCards: slides.length,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `This is a photo-centric Instagram educational carousel. Use the image as a BACKGROUND that covers each slide. Keep text minimal — short headlines overlaid on the photos. Dark overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}. First slide: bold title. Last slide: CTA.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram educational carousel. The image should show real people in a relevant setting. First slide: bold title. Last slide: CTA.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
   };
@@ -272,7 +260,7 @@ export function buildCarouselStoryRequest(
     numCards: slides.length,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `This is a photo-centric Instagram storytelling carousel. Use the image as a BACKGROUND that covers each slide. Keep text minimal — short headlines overlaid on the photos. Dark cinematic overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}. Atmospheric, immersive.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram storytelling carousel. The image should show real people in a cinematic, atmospheric setting.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
   };
@@ -517,7 +505,7 @@ export function buildThumbnailRequest(
     numCards: 3,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `These are photo-centric YouTube thumbnail concepts. Use the image as a BACKGROUND that covers each slide. Keep text to absolute minimum — bold uppercase headlines overlaid on the photos. Dark overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}. The photo IS the thumbnail.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} YouTube thumbnail concepts. The image should show real people in a dramatic, attention-grabbing setting. Bold uppercase headline text.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "16x9" },
     textOptions: { amount: "brief" },
@@ -542,7 +530,7 @@ export function buildSocialGraphicRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
-    additionalInstructions: `This is a photo-centric Instagram social graphic. Use the image as a BACKGROUND that covers the entire card. Keep text to an absolute minimum — just a short headline overlaid on the photo. Dark overlay for text readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. Instagram social graphic.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
@@ -553,8 +541,8 @@ export function buildSocialGraphicRequest(
 
 /**
  * Factory: single-card social post graphic.
- * Uses textMode "generate" so Gamma creates a photo-dominant layout
- * with minimal text overlaid on the photograph.
+ * Proven formula: image top 60%, text bottom 40%.
+ * Scene description goes in imageOptions.style, not additionalInstructions.
  */
 export function makePostGraphicBuilder(
   baseStyle: string,
@@ -567,7 +555,6 @@ export function makePostGraphicBuilder(
     content: DerivativeContent,
     context: VisualContext
   ): GammaGenerationRequest | null => {
-    // Short headline only — Gamma gives more photo space with less text
     const displayText = shortHeadline(content, context);
     if (!displayText) return null;
 
@@ -580,7 +567,7 @@ export function makePostGraphicBuilder(
       format: options?.format ?? "social",
       numCards: 1,
       exportAs: "pdf",
-      additionalInstructions: `This is a photo-centric social media post. ${baseStyle} Use the image as a BACKGROUND that covers the entire card. The card style should use the background image layout with the photo filling the card. Keep text to an absolute minimum — just a short headline overlaid on the photo. Dark overlay for text readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
+      additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle}`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: options?.dimensions ?? "1x1" },
       textOptions: { amount: "brief" },
@@ -590,14 +577,13 @@ export function makePostGraphicBuilder(
 
 /**
  * Factory: thread or article header graphic.
- * Uses textMode "generate" for photo-dominant layout.
+ * Proven formula: image top 60%, text bottom 40%.
  */
 export function makeThreadHeaderBuilder(baseStyle: string) {
   return (
     content: DerivativeContent,
     context: VisualContext
   ): GammaGenerationRequest | null => {
-    // Short headline only — Gamma gives more photo space with less text
     const hookText = shortHeadline(content, context);
     if (!hookText) return null;
 
@@ -610,7 +596,7 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
       format: "social",
       numCards: 1,
       exportAs: "pdf",
-      additionalInstructions: `This is a photo-centric social media post. ${baseStyle} Use the image as a BACKGROUND that covers the entire card. Keep text to an absolute minimum — just a short headline overlaid on the photo. Dark overlay for text readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
+      additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle}`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: "4x3" },
       textOptions: { amount: "brief" },
@@ -620,7 +606,7 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
 
 /**
  * Factory: video cover frame.
- * Uses textMode "generate" for photo-dominant layout.
+ * Proven formula: image top 60%, text bottom 40%.
  */
 export function makeCoverFrameBuilder(
   baseStyle: string,
@@ -630,7 +616,6 @@ export function makeCoverFrameBuilder(
     content: DerivativeContent,
     context: VisualContext
   ): GammaGenerationRequest | null => {
-    // Short headline only — Gamma gives more photo space with less text
     const hookText = shortHeadline(content, context);
     if (!hookText) return null;
 
@@ -643,7 +628,7 @@ export function makeCoverFrameBuilder(
       format: "social",
       numCards: 1,
       exportAs: "pdf",
-      additionalInstructions: `This is a photo-centric cover frame. ${baseStyle} Use the image as a BACKGROUND that covers the entire card. Keep text to an absolute minimum — just a short headline overlaid on the photo. Dark overlay for text readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
+      additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle}`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: options?.dimensions ?? "9x16" },
       textOptions: { amount: "brief" },
@@ -676,7 +661,7 @@ export function buildStorySeriesRequest(
     numCards: Math.min(slides.length, 7),
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
-    additionalInstructions: `This is a photo-centric Instagram Story series. Use the image as a BACKGROUND that covers each card. Keep text minimal on each frame — just short headlines overlaid on the photos. Dark overlay for readability. ${imgStyle.styleInstructions} Category: ${formatPillar(context.pillar)}.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram Story series. The image should show real people in a cinematic setting.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "9x16" },
     textOptions: { amount: "brief" },
