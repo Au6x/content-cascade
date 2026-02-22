@@ -98,7 +98,34 @@ export async function updateSource(
 }
 
 export async function deleteSource(id: string) {
+  // First, collect derivative IDs so we can clean up storage images
+  const derivs = await db
+    .select({ id: derivatives.id })
+    .from(derivatives)
+    .where(eq(derivatives.sourceId, id));
+
+  // Delete the source (cascade deletes jobs + derivatives in DB)
   await db.delete(contentSources).where(eq(contentSources.id, id));
+
+  // Clean up Supabase storage images in background
+  if (derivs.length > 0) {
+    try {
+      const { supabase, STORAGE_BUCKET } = await import("@/lib/storage");
+      for (const d of derivs) {
+        const { data: files } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .list(d.id);
+        if (files && files.length > 0) {
+          const paths = files.map((f) => `${d.id}/${f.name}`);
+          await supabase.storage.from(STORAGE_BUCKET).remove(paths);
+        }
+      }
+    } catch (e) {
+      // Storage cleanup is best-effort; DB records are already gone
+      console.warn("[deleteSource] Storage cleanup error:", e);
+    }
+  }
+
   revalidatePath("/sources");
 }
 

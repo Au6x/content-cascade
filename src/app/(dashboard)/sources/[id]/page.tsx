@@ -5,6 +5,7 @@ import { VariationScroller } from "@/components/variation-scroller";
 import { getPlatformMeta } from "@/lib/platform-meta";
 import { PlatformTabs } from "@/components/platform-dropdown";
 import { getSource } from "@/server/sources";
+import { DeleteSourceButton } from "@/components/delete-source-button";
 
 const statusStyles: Record<string, string> = {
   completed:
@@ -108,11 +109,12 @@ export default async function SourceDetailPage({
                 )}
               </div>
             </div>
-            {canRunCascade && (
-              <div className="shrink-0">
+            <div className="flex shrink-0 items-center gap-3">
+              {canRunCascade && (
                 <CascadeTrigger sourceId={source.id} />
-              </div>
-            )}
+              )}
+              <DeleteSourceButton sourceId={source.id} />
+            </div>
           </div>
         </div>
       </div>

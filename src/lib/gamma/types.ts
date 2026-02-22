@@ -15,6 +15,7 @@ export type GammaGenerationRequest = {
   format: GammaFormat;
   numCards: number;
   exportAs: "pdf";
+  themeId?: string;
   cardSplit?: "auto" | "inputTextBreaks";
   additionalInstructions?: string;
   imageOptions?: {

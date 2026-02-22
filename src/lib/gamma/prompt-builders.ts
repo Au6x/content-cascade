@@ -10,6 +10,10 @@ import type { GammaGenerationRequest, VisualContext } from "./types";
 const LAYOUT_INSTRUCTION =
   "Layout: large photorealistic image taking up the top 60% of the card, with headline text in the bottom 40%. Clean, modern design.";
 
+// Clean theme prevents Gamma from applying decorative abstract textures
+// that override AI-generated photorealistic images.
+const THEME_ID = "default-light";
+
 // ─── Image Style Rotation ────────────────────────────────
 //
 // Carl's requirement: high-quality, photo-realistic images.
@@ -204,6 +208,7 @@ export function buildCarouselOutlineRequest(
     numCards: slides.length,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `${LAYOUT_INSTRUCTION} LinkedIn carousel. The image should show real people in a professional setting. First slide: bold title. Last slide: CTA.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "4x3" },
@@ -232,6 +237,7 @@ export function buildCarouselEduRequest(
     numCards: slides.length,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram educational carousel. The image should show real people in a relevant setting. First slide: bold title. Last slide: CTA.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
@@ -260,6 +266,7 @@ export function buildCarouselStoryRequest(
     numCards: slides.length,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram storytelling carousel. The image should show real people in a cinematic, atmospheric setting.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
@@ -284,6 +291,7 @@ export function buildDrakeRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `Drake meme comparison card. Split into two halves — top is rejected, bottom is approved. LAYOUT: Full-bleed background image filling the entire card. Strong visual contrast between reject and approve. ${MEME_FONT_RULE}`,
     imageOptions: getMemeImageStyle(context.variationIndex ?? 0).imageOptions,
     cardOptions: { dimensions: "1x1" },
@@ -310,6 +318,7 @@ export function buildDistractedRequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `Distracted boyfriend meme layout. Three-column comparison. LAYOUT: Full-bleed background image. Left is old boring option, center is audience, right is exciting new thing. ${MEME_FONT_RULE}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
@@ -337,6 +346,7 @@ export function buildExpandingBrainRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `Expanding brain meme. Four panels stacked vertically, escalating intensity. LAYOUT: Full-bleed photorealistic background that escalates from normal to cosmic. ${MEME_FONT_RULE}`,
     imageOptions: { source: "aiGenerated", model: "imagen-4-pro", style: "photorealistic escalation, cosmic brain, dramatic volumetric lighting, neon plasma glow" },
     cardOptions: { dimensions: "4x5" },
@@ -360,6 +370,7 @@ export function buildThisIsFineRequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `"This is fine" meme card. LAYOUT: Full-bleed photorealistic background of a chaotic office/fire scene. Situation text at top, calm speech bubble at bottom. ${MEME_FONT_RULE}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
@@ -385,6 +396,7 @@ export function buildChangeMyMindRequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `"Change my mind" meme card. LAYOUT: Full-bleed photorealistic background of a debate/outdoor scene. Large bold statement text overlaid. "CHANGE MY MIND" badge below. ${MEME_FONT_RULE}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
@@ -411,6 +423,7 @@ export function buildIsThisARequest(
     format: "presentation",
     numCards: 1,
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `"Is this a...?" meme layout. LAYOUT: Full-bleed photorealistic background. Three labeled regions — person left, thing right, question at bottom. ${MEME_FONT_RULE}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
@@ -436,6 +449,7 @@ export function buildTwoButtonsRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `Two buttons meme card. LAYOUT: Full-bleed photorealistic background of a stressed/sweating scene. Two large buttons side by side with VS badge. ${MEME_FONT_RULE}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "1x1" },
@@ -461,6 +475,7 @@ export function buildCustomConceptRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `Custom meme concept card. LAYOUT: Full-bleed photorealistic background relevant to the topic. Large bold centered text overlaid. Category: ${formatPillar(context.pillar)}. ${MEME_FONT_RULE}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "1x1" },
@@ -505,6 +520,7 @@ export function buildThumbnailRequest(
     numCards: 3,
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `${LAYOUT_INSTRUCTION} YouTube thumbnail concepts. The image should show real people in a dramatic, attention-grabbing setting. Bold uppercase headline text.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "16x9" },
@@ -530,6 +546,7 @@ export function buildSocialGraphicRequest(
     format: "social",
     numCards: 1,
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. Instagram social graphic.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
@@ -567,6 +584,7 @@ export function makePostGraphicBuilder(
       format: options?.format ?? "social",
       numCards: 1,
       exportAs: "pdf",
+    themeId: THEME_ID,
       additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle}`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: options?.dimensions ?? "1x1" },
@@ -596,6 +614,7 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
       format: "social",
       numCards: 1,
       exportAs: "pdf",
+    themeId: THEME_ID,
       additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle}`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: "4x3" },
@@ -628,6 +647,7 @@ export function makeCoverFrameBuilder(
       format: "social",
       numCards: 1,
       exportAs: "pdf",
+    themeId: THEME_ID,
       additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle}`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: options?.dimensions ?? "9x16" },
@@ -661,6 +681,7 @@ export function buildStorySeriesRequest(
     numCards: Math.min(slides.length, 7),
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
+    themeId: THEME_ID,
     additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram Story series. The image should show real people in a cinematic setting.`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "9x16" },
@@ -698,25 +719,28 @@ function shortHeadline(
 }
 
 /**
- * Append topic context to imageOptions.style so the AI image model
- * generates a scene relevant to the article, not a generic stock photo.
+ * Append people-focused scene direction to imageOptions.style.
  *
- * IMPORTANT: Describe a SCENE WITH PEOPLE, not abstract technology.
- * "scene related to: Smart Sensors" → abstract textures (BAD)
- * "people in a professional setting discussing smart sensors" → real scene (GOOD)
+ * IMPORTANT: Do NOT include the article title/headline in the style.
+ * AI image models interpret topic keywords literally:
+ *   "topic context: Smart Sensors" → abstract metallic textures (BAD)
+ *   "real people in a modern workspace" → actual humans (GOOD)
+ *
+ * Topic relevance comes from inputText (headline) and additionalInstructions,
+ * NOT from imageOptions.style. The style field should only describe
+ * photographic technique and human subjects.
  */
 function withTopicStyle(
   imgResult: ImageStyleResult,
-  title: string
+  _title: string
 ): ImageStyleResult {
-  // Request a people-centric scene, with the topic as context rather than literal subject
-  const topicHint = `, showing real people in a professional setting, topic context: ${title.slice(0, 60)}`;
+  const sceneHint = `, real people, human subjects, candid workplace photography, modern professional environment`;
   return {
     ...imgResult,
     imageOptions: {
       ...imgResult.imageOptions,
       style: imgResult.imageOptions.style
-        ? imgResult.imageOptions.style + topicHint
+        ? imgResult.imageOptions.style + sceneHint
         : undefined,
     },
   };
