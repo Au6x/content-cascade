@@ -8,6 +8,7 @@ import {
   pgEnum,
   uuid,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -148,6 +149,7 @@ export const contentTemplates = pgTable(
   (table) => [
     index("idx_templates_platform").on(table.platformId),
     index("idx_templates_slug").on(table.slug),
+    uniqueIndex("uq_templates_platform_slug").on(table.platformId, table.slug),
   ]
 );
 

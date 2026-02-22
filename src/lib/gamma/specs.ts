@@ -21,7 +21,7 @@ import {
   buildStorySeriesRequest,
 } from "./prompt-builders";
 
-const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
+const VISUAL_SPECS: Record<string, TemplateVisualSpec> = {
   // ═══════════════════════════════════════════════════════
   //  LINKEDIN (8 templates)
   // ═══════════════════════════════════════════════════════
@@ -336,14 +336,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
       "Photo-centric Facebook quick-read. Scene: bold, simple setting. Short text overlaid on the photograph."
     ),
   },
-  link_post: {
-    shouldGenerate: true,
-    category: "social_graphic",
-    buildRequest: makePostGraphicBuilder(
-      "Photo-centric Facebook link preview. Scene: professional setting. Article title overlaid on the photograph.",
-      { dimensions: "4x3", format: "presentation" }
-    ),
-  },
+  link_post: { shouldGenerate: false },
   video_post: {
     shouldGenerate: true,
     category: "cover_frame",

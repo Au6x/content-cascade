@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import {
   brandProfiles,
@@ -34,6 +35,8 @@ const PLATFORMS: {
         "Start with a hook in first 2 lines",
         "Include 3-5 relevant hashtags at bottom",
         "Tag relevant people when appropriate",
+        "Do NOT include external links — 60% reach penalty. Carousel docs get 6.6% engagement (highest format).",
+        "Optimal post length: 1,300-1,900 characters for highest engagement",
       ],
       hashtagRules: "3-5 hashtags at end of post, mix broad and niche",
     },
@@ -51,6 +54,7 @@ const PLATFORMS: {
         "Use thread format for depth",
         "Engage in replies within first hour",
         "Use 1-2 hashtags max",
+        "Link posts get near-zero reach for non-Premium accounts. Text outperforms video by 30%.",
       ],
       hashtagRules: "Do NOT use hashtags in tweet body except event-specific tags",
     },
@@ -64,12 +68,12 @@ const PLATFORMS: {
       charLimits: { caption: 2200, reel_caption: 2200, bio: 150 },
       formats: ["post", "carousel", "reel", "story", "live"],
       bestPractices: [
-        "Visual-first — every post needs a strong image concept",
-        "First line of caption is the hook (visible before 'more')",
-        "20-30 hashtags in first comment or end of caption",
+        "Visual-first — carousels get highest engagement, Reels get highest reach",
+        "First 125 characters of caption visible before '...more' — treat as headline",
+        "3-10 keyword-rich hashtags in caption. Keyword captions outperform hashtag-heavy posts by 30%.",
         "Use line breaks and emojis for readability",
       ],
-      hashtagRules: "5-15 hashtags in caption, mix of large (1M+), medium (100K-1M), and niche (10K-100K)",
+      hashtagRules: "3-10 highly relevant hashtags. Keyword-rich captions matter more than volume.",
     },
     sortOrder: 2,
   },
@@ -78,13 +82,15 @@ const PLATFORMS: {
     slug: "tiktok",
     icon: "tiktok",
     config: {
-      charLimits: { caption: 2200, comment: 150 },
+      charLimits: { caption: 4000, comment: 150 },
       formats: ["video", "duet", "stitch", "live", "photo"],
       bestPractices: [
         "Hook in first 1-3 seconds is critical",
         "Use trending sounds when relevant",
         "Keep educational content under 90 seconds",
         "End with a call to action or cliffhanger",
+        "Text overlays mandatory — 80%+ watch on mute",
+        "Completion rate is #1 algorithm signal",
       ],
       hashtagRules: "3-5 hashtags, include 1-2 trending + niche",
     },
@@ -121,9 +127,10 @@ const PLATFORMS: {
       formats: ["post", "reel", "live", "event", "group_post"],
       bestPractices: [
         "Questions drive 100% more comments",
-        "Native video outperforms links",
+        "Link posts heavily penalized — avoid. Native video auto-classifies as Reels.",
         "Group posts get higher organic reach",
         "Shorter posts (under 80 chars) get 66% more engagement",
+        "Saves and shares are the most powerful algorithm signals.",
       ],
       hashtagRules: "1-3 hashtags only, more hurts reach",
     },
@@ -157,6 +164,7 @@ type TemplateDef = {
   funnelStage: "tofu" | "mofu" | "bofu";
   promptTemplate: string;
   sortOrder: number;
+  enabled?: boolean;
 };
 
 function linkedInTemplates(): TemplateDef[] {
@@ -187,6 +195,7 @@ Audience: {{audience}}
 - End with a SPECIFIC question (not "Agree?" or "Thoughts?" — ask something answerable)
 - Write in first person, conversational but authoritative tone
 - Do NOT include any external links in the post body (link goes in first comment)
+- Structure content as Hook → Story → Offer: the hook is the bold opening that stops the scroll, the story is the personal insight that reveals why this matters to someone like the reader, the offer is the specific question at the end that converts attention into conversation
 
 Return JSON: { "content": "the full post text", "headlines": ["3 alternative hook lines"], "hashtags": ["5 relevant hashtags"], "cta": "specific call to action", "visual_direction": "describe the ideal companion image: mood, colors, composition, subject", "notes": "posting tips" }`,
       sortOrder: 0,
@@ -213,6 +222,9 @@ Audience: {{audience}}
 - Make it feel like a real story, not a content piece
 - Connect the personal story to a broader professional lesson
 - End with a single powerful takeaway line
+- Do NOT include any external links in the post body — this destroys reach on LinkedIn
+- The story must be grounded in a pain point or challenge the audience recognizes in themselves — the reader should feel "this is about me" before the lesson lands
+- The final takeaway line is the offer: make it feel like a realization the reader just had, not advice being delivered at them
 
 Return JSON: { "content": "the full post text", "headlines": ["3 hook options"], "hashtags": ["5 hashtags"], "cta": "", "notes": "" }`,
       sortOrder: 1,
@@ -235,6 +247,8 @@ Themes: {{themes}}
 - Acknowledge the opposing view fairly
 - Deliver a punchline insight
 - This should feel brave but not reckless
+- Between the contrarian statement and the evidence, include one sentence that shows why you once believed the conventional view — an Epiphany Bridge moment that earns the reader's trust before you challenge them
+- Do NOT include any external links in the post body — this destroys reach on LinkedIn
 
 Return JSON: { "content": "the full post text", "headlines": ["3 contrarian opener options"], "hashtags": ["5 hashtags"], "cta": "", "notes": "" }`,
       sortOrder: 2,
@@ -257,6 +271,7 @@ Takeaways: {{takeaways}}
 - Connect to a practical implication for the reader
 - Keep it concise and scannable
 - End with a question or reflection
+- Do NOT include any external links in the post body — this destroys reach on LinkedIn
 
 Return JSON: { "content": "the full post text", "headlines": ["3 stat-led hooks"], "hashtags": ["5 hashtags"], "cta": "", "notes": "" }`,
       sortOrder: 3,
@@ -275,10 +290,12 @@ Themes: {{themes}}
 
 ## Requirements
 - Open with a hook line + "Here's what I've learned:" or similar
+- The hook line must reference a real pain point or common mistake — position the list as the answer to something they're already struggling with, not a collection of tips
 - 5-7 numbered points, each 1-2 sentences
 - Each point should deliver standalone value
 - Use a mix of practical tips and mindset shifts
 - End with a bonus insight or invitation to discuss
+- Do NOT include any external links in the post body — this destroys reach on LinkedIn
 
 Return JSON: { "content": "the full post text", "headlines": ["3 hook options"], "hashtags": ["5 hashtags"], "cta": "", "notes": "" }`,
       sortOrder: 4,
@@ -297,9 +314,11 @@ Audience: {{audience}}
 
 ## Requirements
 - Open with a genuinely thought-provoking question
+- The question must surface a tension or aspiration the audience already feels — not a hypothetical, a real dilemma they've faced this week
 - Provide 2-3 sentences of context or your initial take
 - Invite specific types of responses
 - Keep it short to encourage commenting
+- Do NOT include any external links in the post body — this destroys reach on LinkedIn
 
 Return JSON: { "content": "the full post text", "headlines": ["3 question variations"], "hashtags": ["4 hashtags"], "cta": "engagement prompt", "notes": "" }`,
       sortOrder: 5,
@@ -322,6 +341,7 @@ Statistics: {{stats}}
 - Slide 10: Summary + CTA
 - Each slide: headline (5-8 words) + body (2-3 sentences max)
 - Design for visual clarity — minimal text per slide
+- Do NOT include any external links in the post body — this destroys reach on LinkedIn
 
 Return JSON: { "content": "carousel summary", "slides": [{"title": "slide headline", "body": "slide content"}], "headlines": ["3 carousel title options"], "hashtags": ["5 hashtags"], "cta": "final slide CTA", "visual_direction": "design style notes" }`,
       sortOrder: 6,
@@ -343,6 +363,7 @@ Audience: {{audience}}
 - 4 answer options that are distinct, interesting, and non-obvious
 - Include context text (2-3 sentences) to set up the poll
 - The poll should spark debate and drive comments
+- Do NOT include any external links in the post body — this destroys reach on LinkedIn
 
 Return JSON: { "content": "poll context text", "headlines": ["the poll question"], "hashtags": ["4 hashtags"], "cta": "comment prompt", "notes": "poll_options: option1 | option2 | option3 | option4" }`,
       sortOrder: 7,
@@ -367,6 +388,8 @@ Stats: {{stats}}
 
 ## Requirements
 - Tweet 1: Irresistible hook that demands the reader click "Show thread"
+- Tweet 1 must reference a pain point or counterintuitive truth the audience already privately holds — immediate recognition, not just curiosity. "I spent 3 years doing this wrong" > "Here's what I learned about X."
+- The thread arc should function as a mini Epiphany Bridge: walk readers through the same realization step by step
 - Tweet 2: MUST deliver the first insight immediately — no "let me explain" or context-setting
 - Tweets 3-10: Each tweet delivers one insight, builds on the last
 - Final tweet: Summary + CTA (follow, repost tweet 1, bookmark)
@@ -392,6 +415,7 @@ Title: {{title}} | Hooks: {{hooks}} | Themes: {{themes}}
 ## Requirements
 - Bold, opinionated statement that people will agree OR disagree with
 - Should feel authentic, not clickbait
+- Frame the take around a belief your audience secretly holds but hasn't articulated — the best hot takes feel like someone finally said it
 - Designed to drive quote tweets and replies
 - No hashtags in the tweet body
 - Keep it punchy — 71-100 chars is the sweet spot
@@ -468,6 +492,7 @@ Title: {{title}} | Hooks: {{hooks}} | Stats: {{stats}}
 - Each hook should make people NEED to read the thread
 - Use patterns: "I spent X doing Y. Here's what I learned:", numbers, bold claims
 - Vary the styles: curiosity gap, authority, controversy, storytelling
+- At least 2 of the 5 hooks must lead with empathy rather than authority — reference a specific pain point or mistake, not just a provocative claim
 
 Return JSON: { "content": "best hook option", "headlines": ["hook 1", "hook 2", "hook 3", "hook 4", "hook 5"], "hashtags": [], "cta": "", "notes": "hook strategy notes" }`,
       sortOrder: 5,
@@ -509,6 +534,7 @@ Audience: {{audience}}
 - OPENING PARAGRAPH: First 150 chars are visible in the feed — make it a scroll-stopper
 - STRUCTURE:
   - Hook paragraph (1-2 paragraphs, establishes the tension or stakes)
+  - The Hook paragraph must establish emotional stakes — name the pain or aspiration the reader brings before you introduce your argument. They need to feel seen before they'll trust your perspective.
   - 3-5 sections with clear subheadings (use ## for H2)
   - Pull a key quote or stat into a standalone paragraph for visual break
   - Real examples or specific scenarios — no vague generalities
@@ -611,6 +637,7 @@ Stats: {{stats}}
 
 ## Requirements
 - Slide 1: Eye-catching title slide (thumbnail) with swipe indicator (→ or "Swipe")
+- Slide 1 headline must reference a pain point or desired outcome — not the topic, the feeling. "Why you keep burning out" > "Productivity tips"
 - Slide 2: MUST deliver the first key insight immediately — reward the swipe, don't waste it on context
 - Slides 3-9: One clear lesson per slide, easy to understand visually
 - Slide 10: Summary + follow CTA + "Save this post"
@@ -618,8 +645,9 @@ Stats: {{stats}}
 - Include page numbers (e.g., "3/10") on each slide
 - Aspect ratio: 4:5 (portrait) for maximum feed real estate
 - Optimize for DM sharing — make content people want to forward to a colleague
+- Write a keyword-rich caption — first 125 characters are visible before '...more', treat as headline
 
-Return JSON: { "content": "carousel summary", "slides": [{"title": "headline", "body": "supporting text"}], "headlines": ["3 title options"], "hashtags": ["10-15 hashtags, mix of large/medium/niche"], "cta": "follow CTA", "visual_direction": "design notes including color palette and typography", "notes": "" }`,
+Return JSON: { "content": "carousel summary", "slides": [{"title": "headline", "body": "supporting text"}], "headlines": ["3 title options"], "hashtags": ["5-8 keyword-rich hashtags"], "cta": "follow CTA", "visual_direction": "design notes including color palette and typography", "notes": "" }`,
       sortOrder: 0,
     },
     {
@@ -634,6 +662,7 @@ Title: {{title}} | Quotes: {{quotes}} | Emotional Angles: {{emotional_angles}}
 
 ## Requirements
 - Build a narrative arc across slides
+- Frame the carousel as an Epiphany Bridge: each slide moves the reader one step closer to the same realization you had — not telling them the lesson, walking them through discovering it
 - Slide 1: Intriguing hook question or statement + swipe indicator
 - Slide 2: Begin the story immediately — reward the swipe
 - Slides 3-9: Story unfolds with tension, insight, resolution
@@ -641,8 +670,9 @@ Title: {{title}} | Quotes: {{quotes}} | Emotional Angles: {{emotional_angles}}
 - Conversational, human tone
 - Include page numbers on each slide
 - Optimize for DM sharing
+- Write a keyword-rich caption — first 125 characters are visible before '...more', treat as headline
 
-Return JSON: { "content": "story summary", "slides": [{"title": "headline", "body": "text"}], "headlines": ["3 title options"], "hashtags": ["10-15 hashtags, mix of large/medium/niche"], "cta": "CTA", "visual_direction": "design notes including mood and color palette", "notes": "" }`,
+Return JSON: { "content": "story summary", "slides": [{"title": "headline", "body": "text"}], "headlines": ["3 title options"], "hashtags": ["5-8 keyword-rich hashtags"], "cta": "CTA", "visual_direction": "design notes including mood and color palette", "notes": "" }`,
       sortOrder: 1,
     },
     {
@@ -658,11 +688,12 @@ Title: {{title}} | Hooks: {{hooks}} | Themes: {{themes}}
 ## Requirements
 - First 125 characters are visible before "...more" on mobile — treat this as your HEADLINE. Make it irresistible.
 - Body: share insight, story, or value with line breaks for readability
+- The caption body should build an Attractive Character moment: share a specific detail, struggle, or realization that makes the insight feel lived-in rather than researched — people save posts they feel were written about them
 - End: CTA (save, share, comment, tag someone)
 - Include detailed image concept
 - Optimize for DM sharing — make people want to forward this to a colleague
 
-Return JSON: { "content": "the caption", "headlines": ["3 hook first lines (under 125 chars each)"], "hashtags": ["10-15 hashtags, mix of large/medium/niche"], "cta": "specific engagement CTA", "visual_direction": "detailed image concept: mood, colors, composition, subject matter", "notes": "" }`,
+Return JSON: { "content": "the caption", "headlines": ["3 hook first lines (under 125 chars each)"], "hashtags": ["5-8 keyword-rich hashtags"], "cta": "specific engagement CTA", "visual_direction": "detailed image concept: mood, colors, composition, subject matter", "notes": "" }`,
       sortOrder: 2,
     },
     {
@@ -677,6 +708,7 @@ Title: {{title}} | Hooks: {{hooks}} | Takeaways: {{takeaways}}
 
 ## Requirements
 - HOOK (0-3s): Pattern interrupt that stops the scroll
+- The HOOK must reference a specific pain point or outcome the audience already wants — empathy first, not cleverness. The BODY is the story that moves them from awareness to desire. The CTA is the offer: one clear next action, not multiple asks.
 - BODY (3-45s): Deliver 1-3 key insights with visual transitions
 - CTA (45-60s): Follow, save, or comment prompt
 - MANDATORY: Include text overlay for EVERY key point — 80%+ watch with sound off
@@ -685,7 +717,7 @@ Title: {{title}} | Hooks: {{hooks}} | Takeaways: {{takeaways}}
 - Must work completely with sound OFF
 - Suggest a trending sound
 
-Return JSON: { "content": "caption text", "hook": "the opening hook line", "script": "full script with [VISUAL CUE] and [TEXT OVERLAY] markers", "headlines": ["3 hook options"], "hashtags": ["10-15 hashtags, mix of large/medium/niche"], "cta": "specific CTA", "visual_direction": "visual notes + text overlay positioning", "sound_suggestion": "sound idea", "notes": "" }`,
+Return JSON: { "content": "caption text", "hook": "the opening hook line", "script": "full script with [VISUAL CUE] and [TEXT OVERLAY] markers", "headlines": ["3 hook options"], "hashtags": ["5-8 keyword-rich hashtags"], "cta": "specific CTA", "visual_direction": "visual notes + text overlay positioning", "sound_suggestion": "sound idea", "notes": "" }`,
       sortOrder: 3,
     },
     {
@@ -718,6 +750,7 @@ Title: {{title}} | Takeaways: {{takeaways}} | Themes: {{themes}}
 
 ## Requirements
 - Story 1: Hook question or bold statement + poll/quiz sticker
+- Story 1 hook must feel like a DM to one person — surface a specific frustration they've had this week, not a general topic. People reply to stories that feel personal.
 - Stories 2-5: Key insights, one per story
 - Story 6: Summary or "hot take"
 - Story 7: CTA (link, DM, see post)
@@ -744,9 +777,10 @@ Audience: {{audience}}
 - Share value: insights, lessons, or story from the article
 - Use line breaks and spacing for readability
 - Personal and conversational tone
+- Follow the Hook → Story → Offer arc: the first line hooks with a pain point or unexpected truth, the body delivers the story that builds genuine connection, the CTA is the offer — invite a conversation, not a click
 - End with engagement CTA + hashtags
 
-Return JSON: { "content": "the full caption", "headlines": ["3 first-line hooks"], "hashtags": ["10-15 hashtags, mix of large/medium/niche"], "cta": "engagement CTA", "notes": "" }`,
+Return JSON: { "content": "the full caption", "headlines": ["3 first-line hooks"], "hashtags": ["5-8 keyword-rich hashtags"], "cta": "engagement CTA", "notes": "" }`,
       sortOrder: 6,
     },
     {
@@ -765,7 +799,7 @@ Title: {{title}} | Hooks: {{hooks}}
 - Can be a quote, question, bold statement, or mic-drop insight
 - Include image/visual concept suggestion
 
-Return JSON: { "content": "the caption", "headlines": ["3 options"], "hashtags": ["10-15 hashtags, mix of large/medium/niche"], "cta": "", "visual_direction": "image concept", "notes": "" }`,
+Return JSON: { "content": "the caption", "headlines": ["3 options"], "hashtags": ["5-8 keyword-rich hashtags"], "cta": "", "visual_direction": "image concept", "notes": "" }`,
       sortOrder: 7,
     },
     {
@@ -864,6 +898,7 @@ Title: {{title}} | Hooks: {{hooks}} | Stats: {{stats}}
 
 ## Requirements
 - HOOK (0-3s): Stop the scroll immediately — pattern interrupt
+- The HOOK must mirror back a specific frustration or desire your audience already has — not a clever observation, a recognition moment. If they don't see themselves in the first 3 seconds, they scroll.
 - BODY (3-25s): Rapid-fire delivery of 1-2 key insights
 - CTA (25-30s): Follow for more / comment your take
 - MANDATORY: Text overlays for every key point (80%+ watch on mute)
@@ -887,6 +922,7 @@ Title: {{title}} | Takeaways: {{takeaways}} | Stats: {{stats}}
 ## Requirements
 - Hook (0-3s): "Here's something most people don't know about..."
 - Setup (3-10s): Frame the problem or question
+- Frame the hook as a question or assumption the audience already holds — then use the teaching section to guide them through the same realization you had. The recap is the offer: one clear takeaway they can use today.
 - Teaching (10-45s): 2-3 clear points with examples (not 5 — keep it tight)
 - Recap (45-60s): Quick summary + CTA
 - Conversational, fast-paced delivery — sound like a real person, NOT a narrator
@@ -909,6 +945,7 @@ Title: {{title}} | Quotes: {{quotes}} | Emotional Angles: {{emotional_angles}}
 ## Requirements
 - Open with "So this happened..." or similar storytime opener
 - Build tension and curiosity
+- Build an Epiphany Bridge: the story should take the viewer through the same moment of realization you experienced — not just what happened, but why it changed how you think. The takeaway should feel like something they discovered, not something you told them.
 - Deliver a surprising insight or lesson
 - Keep it personal and authentic
 - End with a cliffhanger or powerful takeaway
@@ -947,6 +984,7 @@ Title: {{title}} | Hooks: {{hooks}} | Themes: {{themes}}
 
 ## Requirements
 - Make a statement or ask a question that demands a response
+- The statement must reference a genuine tension the audience faces — "Does this happen to you?" gets duets, "Do you agree with this?" gets ignored
 - Leave "space" for someone to react or add their perspective
 - Controversial enough to engage, not enough to alienate
 - End with an explicit invitation to duet/stitch
@@ -967,6 +1005,7 @@ Title: {{title}} | Takeaways: {{takeaways}} | Stats: {{stats}}
 ## Requirements
 - Background: article screenshot, headline, or relevant image
 - Speaker talks to camera reacting to / explaining the content
+- Open by naming a belief or assumption your audience holds about this topic — then use the greenscreen content to confirm or challenge it. Position yourself as someone who's been where they are.
 - 2-3 key points maximum
 - Conversational and opinionated tone
 
@@ -1005,6 +1044,7 @@ Title: {{title}} | Pillar: {{pillar}} | Takeaways: {{takeaways}}
 ## Requirements
 - Frame as "Part X of [series name]" (suggest a series name)
 - Each episode covers one key insight from the article
+- Each episode should include one Attractive Character moment: a brief honest admission or behind-the-scenes detail that makes you human. The audience follows series for the person as much as the content.
 - Include a teaser for the next episode to drive follows
 - Consistent format viewers can expect and anticipate
 
@@ -1032,6 +1072,8 @@ Quotes: {{quotes}}
 ## Requirements
 - First 5 seconds: State the value proposition or create a pattern interrupt. NO channel intro, NO logo, NO "hey guys, welcome back."
 - If retention drops below 70% in first 30 seconds, algorithm stops promoting — make every second count
+- Treat the full video as a Hook → Story → Offer arc: the hook preview (0-0:30) is the promise, sections 1-4 are the story that builds authority through specific examples and honest moments, the conclusion is the offer — the subscribe CTA should feel earned by the value delivered
+- Include at least one Attractive Character moment per section: a personal example, mistake, or behind-the-scenes detail that makes the content human
 - Hook (0:00-0:30): Compelling opener that previews the value
 - Intro (0:30-1:30): What the video covers and why it matters
 - Section 1-4 (1:30-12:00): Key sections with timestamps
@@ -1054,6 +1096,7 @@ Title: {{title}} | Hooks: {{hooks}} | Stats: {{stats}}
 
 ## Requirements
 - Instant hook in first 2 seconds
+- The opening 2 seconds must name a specific pain point or outcome — not the topic, the feeling. "I wasted 6 months doing this wrong" lands harder than "Here's how to do X."
 - One clear insight or value drop
 - Fast pacing, no filler
 - End with subscribe nudge
@@ -1206,6 +1249,8 @@ Audience: {{audience}}
 - Use line breaks for readability
 - End with a question to drive comments
 - Conversational tone, like talking to a friend
+- Open with a moment of honest recognition — a struggle, observation, or confession the audience has privately experienced. The story builds from that shared truth to the insight. The closing question is the offer: invite them to add their own version of the story.
+- Optimize for saves and shares — these are the strongest algorithm signals on Facebook
 
 Return JSON: { "content": "the full post text", "headlines": ["3 opening hook options"], "hashtags": ["3 hashtags"], "cta": "engagement question", "notes": "" }`,
       sortOrder: 0,
@@ -1224,6 +1269,7 @@ Title: {{title}} | Hooks: {{hooks}}
 - UNDER 80 CHARACTERS. Posts under 80 chars get 66% more engagement.
 - Maximum impact in minimum words
 - Can be a question, bold statement, or observation
+- The post must feel like an observation from the audience's own internal monologue — the best under-80-char posts are things people copy-paste into DMs saying "this is so me"
 - Questions drive 100% more comments than statements on Facebook
 - Designed to stop the scroll and spark comments
 - Do NOT include external links
@@ -1236,6 +1282,7 @@ Return JSON: { "content": "the post text (under 80 chars)", "headlines": ["3 var
       slug: "link_post",
       description: "Post optimized for link preview sharing",
       funnelStage: "mofu",
+      enabled: false,
       promptTemplate: `Create a Facebook link post (share article with commentary, 300-800 chars).
 
 ## Source Material
@@ -1265,6 +1312,7 @@ Title: {{title}} | Hooks: {{hooks}} | Takeaways: {{takeaways}}
 - Post description (200-500 chars) that accompanies the video
 - Brief video script outline (60-120 seconds)
 - Facebook native video outperforms links — design for autoplay (sound off first 3s)
+- Script the first 5 seconds as a recognition hook — something the viewer immediately identifies with. Then follow Hook → Story → Offer: the hook names the pain, the story is your experience with it, the CTA is the one thing they should do next.
 
 Return JSON: { "content": "post description", "hook": "video hook", "script": "video script outline", "headlines": ["3 descriptions"], "hashtags": ["2 hashtags"], "cta": "CTA", "visual_direction": "video concept", "notes": "" }`,
       sortOrder: 3,
@@ -1305,6 +1353,7 @@ Title: {{title}} | Themes: {{themes}} | Audience: {{audience}}
 - Designed for group engagement (higher organic reach than page posts)
 - Ask for the community's experience or opinion
 - Share a key insight then invite discussion
+- Lead with a Hook that names a real tension the group members face daily — not a topic, a feeling they've had this week. Share a brief honest take to frame it. The discussion prompt is the offer: let the community complete the story.
 - No self-promotion feel — value-first
 
 Return JSON: { "content": "the group post text", "headlines": ["3 opener options"], "hashtags": [], "cta": "discussion prompt", "notes": "" }`,
@@ -1605,17 +1654,27 @@ async function seed() {
     },
   ];
 
-  await db.insert(brandProfiles).values(BRAND_PROFILES);
+  await db.insert(brandProfiles).values(BRAND_PROFILES).onConflictDoNothing();
   for (const b of BRAND_PROFILES) {
     console.log(`  ${b.name} (${b.slug})`);
   }
   console.log();
 
-  // 2. Platforms
-  console.log("Creating platforms...");
+  // 2. Platforms (upsert by slug)
+  console.log("Creating/updating platforms...");
   const insertedPlatforms = await db
     .insert(platforms)
     .values(PLATFORMS)
+    .onConflictDoUpdate({
+      target: platforms.slug,
+      set: {
+        config: sql`excluded.config`,
+        enabled: sql`excluded.enabled`,
+        sortOrder: sql`excluded.sort_order`,
+        icon: sql`excluded.icon`,
+        name: sql`excluded.name`,
+      },
+    })
     .returning();
 
   const platformMap: Record<string, string> = {};
@@ -1656,8 +1715,18 @@ async function seed() {
         funnelStage: template.funnelStage as any,
         promptTemplate: template.promptTemplate,
         outputSchema: {},
-        enabled: true,
+        enabled: template.enabled ?? true,
         sortOrder: template.sortOrder,
+      }).onConflictDoUpdate({
+        target: [contentTemplates.platformId, contentTemplates.slug],
+        set: {
+          name: sql`excluded.name`,
+          description: sql`excluded.description`,
+          funnelStage: sql`excluded.funnel_stage`,
+          promptTemplate: sql`excluded.prompt_template`,
+          enabled: sql`excluded.enabled`,
+          sortOrder: sql`excluded.sort_order`,
+        },
       });
       totalTemplates++;
     }
