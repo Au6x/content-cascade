@@ -19,13 +19,14 @@ export default async function SourcesPage({
   const selectedBrandId = params.brand;
 
   let sources: Awaited<ReturnType<typeof listSources>> = [];
-  let brands: Awaited<ReturnType<typeof listBrands>> = [];
+  let brandName: string | undefined;
 
   try {
-    [sources, brands] = await Promise.all([
-      listSources(selectedBrandId),
-      listBrands(),
-    ]);
+    sources = await listSources(selectedBrandId);
+    if (selectedBrandId) {
+      const brands = await listBrands();
+      brandName = brands.find((b) => b.id === selectedBrandId)?.name;
+    }
   } catch {
     // DB not connected
   }
@@ -38,9 +39,7 @@ export default async function SourcesPage({
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Sources</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {sources.length > 0 ? `${sources.length} article${sources.length === 1 ? "" : "s"}` : "No articles yet"}
-            {selectedBrandId && brands.find((b) => b.id === selectedBrandId)
-              ? ` · ${brands.find((b) => b.id === selectedBrandId)!.name}`
-              : ""}
+            {brandName ? ` · ${brandName}` : ""}
           </p>
         </div>
         <Link
@@ -53,36 +52,6 @@ export default async function SourcesPage({
           New Source
         </Link>
       </div>
-
-      {/* Brand filter pills */}
-      {brands.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          <Link href="/sources">
-            <span
-              className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-[12px] font-medium transition-all ${
-                !selectedBrandId
-                  ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-              }`}
-            >
-              All brands
-            </span>
-          </Link>
-          {brands.map((b) => (
-            <Link key={b.id} href={`/sources?brand=${b.id}`}>
-              <span
-                className={`inline-flex cursor-pointer items-center rounded-full px-3 py-1 text-[12px] font-medium transition-all ${
-                  selectedBrandId === b.id
-                    ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                }`}
-              >
-                {b.name}
-              </span>
-            </Link>
-          ))}
-        </div>
-      )}
 
       {/* Sources list */}
       {sources.length === 0 ? (
@@ -98,7 +67,7 @@ export default async function SourcesPage({
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {selectedBrandId
-              ? "Try a different brand filter or create a new source"
+              ? "Try a different brand or create a new source"
               : "Add your first article to start generating content"}
           </p>
           <Link href="/sources/new" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm shadow-primary/20 transition-all hover:bg-primary/90">
@@ -150,7 +119,7 @@ export default async function SourcesPage({
                           {source.pillar.replace(/_/g, " ")}
                         </span>
                         {source.brand && (
-                          <span className="inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-600 ring-1 ring-violet-200/60">
+                          <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-teal-600 ring-1 ring-teal-200/60">
                             {source.brand.name}
                           </span>
                         )}

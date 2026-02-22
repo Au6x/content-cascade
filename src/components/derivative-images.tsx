@@ -151,7 +151,7 @@ export function DerivativeImages({
     }
     if (retrying || imageGenerationStatus === "generating") {
       return (
-        <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-violet-500/5 px-4 py-3">
+        <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-teal-400/5 px-4 py-3">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           <span className="text-xs font-medium text-primary">
             Generating visuals...

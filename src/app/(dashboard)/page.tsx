@@ -1,10 +1,17 @@
 import { getPlatformMeta } from "@/lib/platform-meta";
-import { getDashboardStats } from "@/server/sources";
+import { getDashboardStats, listBrands } from "@/server/sources";
 import { db } from "@/lib/db";
 import { platforms } from "@/lib/db/schema";
 import Link from "next/link";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ brand?: string }>;
+}) {
+  const params = await searchParams;
+  const brandId = params.brand;
+
   let stats = {
     totalSources: 0,
     totalDerivatives: 0,
@@ -13,7 +20,7 @@ export default async function DashboardPage() {
   };
 
   try {
-    stats = await getDashboardStats();
+    stats = await getDashboardStats(brandId);
   } catch {
     // DB not connected yet
   }
@@ -26,6 +33,14 @@ export default async function DashboardPage() {
     // DB not connected
   }
 
+  let brandName: string | undefined;
+  if (brandId) {
+    try {
+      const brands = await listBrands();
+      brandName = brands.find((b) => b.id === brandId)?.name;
+    } catch {}
+  }
+
   const approvedCount = stats.statusBreakdown.find((s) => s.status === "approved")?.count ?? 0;
   const publishedCount = stats.statusBreakdown.find((s) => s.status === "published")?.count ?? 0;
 
@@ -35,7 +50,7 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Overview of your content cascade pipeline
+          {brandName ? `Overview for ${brandName}` : "Overview of your content cascade pipeline"}
         </p>
       </div>
 
@@ -46,11 +61,11 @@ export default async function DashboardPage() {
             label: "Sources",
             value: stats.totalSources,
             sub: "articles submitted",
-            color: "text-indigo-600",
-            bg: "bg-indigo-50",
-            border: "border-indigo-100",
+            color: "text-teal-600",
+            bg: "bg-teal-50",
+            border: "border-teal-100",
             icon: (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="text-indigo-500">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="text-teal-500">
                 <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
                 <path d="M14 2v4a2 2 0 0 0 2 2h4" />
               </svg>
@@ -60,11 +75,11 @@ export default async function DashboardPage() {
             label: "Derivatives",
             value: stats.totalDerivatives,
             sub: "content pieces",
-            color: "text-violet-600",
-            bg: "bg-violet-50",
-            border: "border-violet-100",
+            color: "text-cyan-600",
+            bg: "bg-cyan-50",
+            border: "border-cyan-100",
             icon: (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="text-violet-500">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="text-cyan-500">
                 <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
                 <path d="m22.54 12.43-1.42-.65-8.58 3.91a2 2 0 0 1-1.66 0L2.3 11.78l-1.42.65a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
               </svg>
@@ -193,9 +208,9 @@ export default async function DashboardPage() {
                   href: "/sources",
                   title: "View Sources",
                   desc: "Manage your article library",
-                  iconBg: "bg-indigo-50",
+                  iconBg: "bg-teal-50",
                   icon: (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-indigo-500">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-teal-500">
                       <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
                       <path d="M14 2v4a2 2 0 0 0 2 2h4" />
                     </svg>
@@ -205,9 +220,9 @@ export default async function DashboardPage() {
                   href: "/derivatives",
                   title: "Browse Derivatives",
                   desc: "Review generated content",
-                  iconBg: "bg-violet-50",
+                  iconBg: "bg-cyan-50",
                   icon: (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-violet-500">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-cyan-500">
                       <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
                     </svg>
                   ),
@@ -215,7 +230,7 @@ export default async function DashboardPage() {
                 {
                   href: "/settings",
                   title: "Brand Voices",
-                  desc: "9 brands configured",
+                  desc: "Configure brand profiles",
                   iconBg: "bg-emerald-50",
                   icon: (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500">

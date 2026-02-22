@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createSource } from "@/server/sources";
+import { useBrand } from "@/contexts/brand-context";
 
 type Brand = { id: string; name: string; slug: string };
 type Props = { brands?: Brand[] };
@@ -22,10 +23,15 @@ const PILLARS = [
 
 export function SourceForm({ brands = [] }: Props) {
   const router = useRouter();
+  const { brandId: globalBrandId } = useBrand();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [variationsCount, setVariationsCount] = useState(5);
-  const [brandId, setBrandId] = useState(brands[0]?.id ?? "");
+  const [brandId, setBrandId] = useState(
+    globalBrandId && brands.some((b) => b.id === globalBrandId)
+      ? globalBrandId
+      : brands[0]?.id ?? ""
+  );
 
   const handleVariationsChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

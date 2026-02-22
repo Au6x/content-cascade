@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useBrand } from "@/contexts/brand-context";
 
 const navigation = [
   {
@@ -53,12 +54,13 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { brandId, brands, setBrandId } = useBrand();
 
   return (
-    <aside className="flex h-screen w-[220px] shrink-0 flex-col border-r border-border/60 bg-sidebar">
+    <aside className="flex h-screen w-[220px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Logo */}
-      <div className="flex h-14 items-center gap-2.5 border-b border-border/60 px-5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-500 shadow-sm shadow-primary/30">
+      <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-5">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sidebar-primary to-teal-400 shadow-sm shadow-sidebar-primary/30">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
             <path d="m22.54 12.43-1.42-.65-8.58 3.91a2 2 0 0 1-1.66 0L2.3 11.78l-1.42.65a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
@@ -68,6 +70,27 @@ export function Sidebar() {
           Content Cascade
         </span>
       </div>
+
+      {/* Brand selector */}
+      {brands.length > 0 && (
+        <div className="border-b border-sidebar-border px-3 py-3">
+          <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+            Workspace
+          </label>
+          <select
+            value={brandId ?? ""}
+            onChange={(e) => setBrandId(e.target.value || null)}
+            className="w-full rounded-lg border border-sidebar-border bg-sidebar-accent px-2.5 py-1.5 text-[12px] font-medium text-sidebar-foreground outline-none transition-colors hover:bg-sidebar-accent/80 focus:ring-1 focus:ring-sidebar-ring"
+          >
+            <option value="">All Brands</option>
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4">
@@ -85,21 +108,21 @@ export function Sidebar() {
                 className={cn(
                   "group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-150",
                   isActive
-                    ? "bg-primary/8 text-primary"
-                    : "text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                    ? "bg-sidebar-primary/15 text-sidebar-primary"
+                    : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 )}
               >
                 <span
                   className={cn(
                     "transition-colors",
-                    isActive ? "text-primary" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
+                    isActive ? "text-sidebar-primary" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70"
                   )}
                 >
                   {item.icon}
                 </span>
                 {item.name}
                 {isActive && (
-                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-sidebar-primary" />
                 )}
               </Link>
             );
@@ -111,7 +134,7 @@ export function Sidebar() {
       <div className="px-3 pb-3">
         <Link
           href="/sources/new"
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-[13px] font-semibold text-primary-foreground shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-sidebar-primary px-3 py-2 text-[13px] font-semibold text-sidebar-primary-foreground shadow-sm shadow-sidebar-primary/20 transition-all hover:bg-sidebar-primary/90 hover:shadow-sidebar-primary/30"
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M12 5v14" /><path d="M5 12h14" />
@@ -121,12 +144,12 @@ export function Sidebar() {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-border/60 px-4 py-3">
+      <div className="border-t border-sidebar-border px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-900/30">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </span>
-          <p className="text-[11px] font-medium text-muted-foreground">
+          <p className="text-[11px] font-medium text-sidebar-foreground/40">
             System online · v0.2.0
           </p>
         </div>

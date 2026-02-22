@@ -63,7 +63,7 @@ export function CascadeProgress({
 
   if (!data) {
     return (
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-primary/5 to-violet-500/5 p-6 ring-1 ring-primary/10">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-primary/5 to-teal-400/5 p-6 ring-1 ring-primary/10">
         <div className="flex items-center gap-3">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           <span className="text-sm font-medium text-muted-foreground">
@@ -84,7 +84,7 @@ export function CascadeProgress({
           ? "bg-gradient-to-r from-emerald-50 to-green-50 ring-emerald-200/50 dark:from-emerald-950/20 dark:to-green-950/20 dark:ring-emerald-800/30"
           : isFailed
             ? "bg-gradient-to-r from-red-50 to-rose-50 ring-red-200/50 dark:from-red-950/20 dark:to-rose-950/20 dark:ring-red-800/30"
-            : "bg-gradient-to-r from-primary/5 to-violet-500/5 ring-primary/10"
+            : "bg-gradient-to-r from-primary/5 to-teal-400/5 ring-primary/10"
       }`}
     >
       <div className="mb-4 flex items-center justify-between">
@@ -153,7 +153,7 @@ export function CascadeProgress({
               ? "bg-gradient-to-r from-emerald-500 to-green-500"
               : isFailed
                 ? "bg-gradient-to-r from-red-500 to-rose-500"
-                : "bg-gradient-to-r from-primary to-violet-500"
+                : "bg-gradient-to-r from-primary to-teal-400"
           }`}
           style={{ width: `${data.progress}%` }}
         />

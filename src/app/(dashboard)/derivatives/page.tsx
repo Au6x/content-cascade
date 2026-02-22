@@ -6,7 +6,7 @@ import { listDerivatives } from "@/server/derivatives";
 export default async function DerivativesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; platform?: string }>;
+  searchParams: Promise<{ status?: string; platform?: string; brand?: string }>;
 }) {
   const params = await searchParams;
 
@@ -15,6 +15,7 @@ export default async function DerivativesPage({
     items = await listDerivatives({
       status: params.status,
       platformId: params.platform,
+      brandId: params.brand,
     });
   } catch {
     // DB not connected
@@ -98,7 +99,7 @@ export default async function DerivativesPage({
 
       {/* Status filter chips */}
       <div className="flex flex-wrap gap-2">
-        <a href="/derivatives">
+        <a href={params.brand ? `/derivatives?brand=${params.brand}` : "/derivatives"}>
           <span
             className={`inline-flex cursor-pointer items-center rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
               !params.status
@@ -110,7 +111,7 @@ export default async function DerivativesPage({
           </span>
         </a>
         {Object.entries(statusCounts).map(([status, count]) => (
-          <a key={status} href={`/derivatives?status=${status}`}>
+          <a key={status} href={`/derivatives?status=${status}${params.brand ? `&brand=${params.brand}` : ""}`}>
             <span
               className={`inline-flex cursor-pointer items-center rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
                 params.status === status

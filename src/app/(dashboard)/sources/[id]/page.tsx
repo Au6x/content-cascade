@@ -84,9 +84,9 @@ export default async function SourceDetailPage({
   return (
     <div className="space-y-8">
       {/* Hero header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-violet-500/5 to-transparent p-8 ring-1 ring-primary/10">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/8 via-teal-400/5 to-transparent p-8 ring-1 ring-primary/10">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-violet-500/5 blur-2xl" />
+        <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-teal-400/5 blur-2xl" />
         <div className="relative">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-3">

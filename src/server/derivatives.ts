@@ -10,6 +10,7 @@ export async function listDerivatives(filters?: {
   sourceId?: string;
   platformId?: string;
   status?: string;
+  brandId?: string;
 }) {
   return db.query.derivatives.findMany({
     where: and(
@@ -22,6 +23,9 @@ export async function listDerivatives(filters?: {
           : undefined,
         filters?.status
           ? eq(derivatives.status, filters.status as any)
+          : undefined,
+        filters?.brandId
+          ? eq(derivatives.brandId, filters.brandId)
           : undefined,
       ].filter(Boolean)
     ),

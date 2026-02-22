@@ -70,7 +70,7 @@ export default async function SettingsPage() {
               >
                 {/* Brand header */}
                 <div className="flex items-start gap-3 px-4 py-3.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-violet-500/20 text-[11px] font-bold text-primary">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-teal-400/15 text-[11px] font-bold text-primary">
                     {brand.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
                   </div>
 

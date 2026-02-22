@@ -129,19 +129,25 @@ export async function deleteSource(id: string) {
   revalidatePath("/sources");
 }
 
-export async function getDashboardStats() {
+export async function getDashboardStats(brandId?: string) {
+  const sourceWhere = brandId ? eq(contentSources.brandId, brandId) : undefined;
+  const derivWhere = brandId ? eq(derivatives.brandId, brandId) : undefined;
+
   const [sourceCount] = await db
     .select({ count: count() })
-    .from(contentSources);
+    .from(contentSources)
+    .where(sourceWhere);
   const [derivativeCount] = await db
     .select({ count: count() })
-    .from(derivatives);
+    .from(derivatives)
+    .where(derivWhere);
   const platformBreakdown = await db
     .select({
       platformId: derivatives.platformId,
       count: count(),
     })
     .from(derivatives)
+    .where(derivWhere)
     .groupBy(derivatives.platformId);
 
   const statusBreakdown = await db
@@ -150,6 +156,7 @@ export async function getDashboardStats() {
       count: count(),
     })
     .from(derivatives)
+    .where(derivWhere)
     .groupBy(derivatives.status);
 
   return {

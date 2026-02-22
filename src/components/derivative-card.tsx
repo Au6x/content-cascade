@@ -44,8 +44,8 @@ const STATUS_CONFIG: Record<string, { label: string; dot: string; badge: string 
   },
   scheduled: {
     label: "Scheduled",
-    dot: "bg-violet-500",
-    badge: "bg-violet-50 text-violet-700 ring-violet-200/60",
+    dot: "bg-teal-500",
+    badge: "bg-teal-50 text-teal-700 ring-teal-200/60",
   },
   error: {
     label: "Error",
