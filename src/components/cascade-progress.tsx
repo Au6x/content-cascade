@@ -42,23 +42,30 @@ export function CascadeProgress({
   const [data, setData] = useState<ProgressData | null>(null);
 
   useEffect(() => {
-    const eventSource = new EventSource(`/api/jobs/${jobId}/progress`);
+    let active = true;
 
-    eventSource.onmessage = (event) => {
-      const parsed = JSON.parse(event.data) as ProgressData;
-      setData(parsed);
-
-      if (parsed.status === "completed" || parsed.status === "failed") {
-        eventSource.close();
-        onComplete?.();
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/jobs/${jobId}/progress`);
+        if (!res.ok || !active) return;
+        const parsed: ProgressData = await res.json();
+        setData(parsed);
+        if (parsed.status === "completed" || parsed.status === "failed") {
+          active = false;
+          onComplete?.();
+        }
+      } catch {
+        // ignore fetch errors, will retry next tick
       }
     };
 
-    eventSource.onerror = () => {
-      eventSource.close();
-    };
+    poll(); // immediate first poll
+    const interval = setInterval(poll, 2000);
 
-    return () => eventSource.close();
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, [jobId, onComplete]);
 
   if (!data) {

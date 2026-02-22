@@ -6,6 +6,9 @@ export type CascadeJobData = {
   jobId: string;
 };
 
+export type RetryImagesJobData = { derivativeId: string };
+export type RetryContentJobData = { derivativeId: string };
+
 export type CascadeJobProgress = {
   stage: "extracting" | "generating" | "generating_images" | "completed" | "failed";
   progress: number;
