@@ -1,6 +1,6 @@
 import "dotenv/config";
+import { getBoss } from "../lib/queue/boss";
 import {
-  getBoss,
   QUEUE_CASCADE,
   QUEUE_RETRY_IMAGES,
   QUEUE_RETRY_CONTENT,

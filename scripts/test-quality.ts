@@ -1,7 +1,8 @@
 import "dotenv/config";
 import { db } from "../src/lib/db";
 import { contentSources, cascadeJobs, derivatives } from "../src/lib/db/schema";
-import { getBoss, QUEUE_CASCADE, CASCADE_JOB_OPTIONS } from "../src/lib/queue/cascade";
+import { getBoss } from "../src/lib/queue/boss";
+import { QUEUE_CASCADE, CASCADE_JOB_OPTIONS } from "../src/lib/queue/cascade";
 import { eq, desc } from "drizzle-orm";
 
 async function main() {

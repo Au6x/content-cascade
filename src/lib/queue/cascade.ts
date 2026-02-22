@@ -1,5 +1,5 @@
-import { PgBoss } from "pg-boss";
-import type { SendOptions } from "pg-boss";
+import { db } from "@/lib/db";
+import { sql } from "drizzle-orm";
 
 // ─── Types (unchanged) ─────────────────────────────────
 
@@ -30,33 +30,49 @@ export const QUEUE_RETRY_CONTENT = "retry-content";
 
 // ─── Default Job Options ───────────────────────────────
 
-export const CASCADE_JOB_OPTIONS: SendOptions = {
+export type SendJobOptions = {
+  retryLimit?: number;
+  retryDelay?: number;
+  retryBackoff?: boolean;
+  expireInSeconds?: number;
+};
+
+export const CASCADE_JOB_OPTIONS: SendJobOptions = {
   retryLimit: 2,
   retryDelay: 5,
   retryBackoff: true,
   expireInSeconds: 3600,
 };
 
-// ─── pg-boss Singleton ─────────────────────────────────
+// ─── Lightweight Job Sender (no pg-boss start needed) ──
+// Inserts directly into the pgboss.job table via raw SQL.
+// This avoids the ~3s boss.start() overhead on Vercel serverless.
 
-let boss: PgBoss | null = null;
-let startPromise: Promise<PgBoss> | null = null;
+export async function sendJob(
+  queueName: string,
+  data: object,
+  options?: SendJobOptions,
+): Promise<string | null> {
+  const retryLimit = options?.retryLimit ?? 2;
+  const retryDelay = options?.retryDelay ?? 0;
+  const retryBackoff = options?.retryBackoff ?? false;
+  const expireInSeconds = options?.expireInSeconds ?? 900;
 
-export async function getBoss(): Promise<PgBoss> {
-  if (boss) return boss;
+  const result = await db.execute<{ id: string }>(sql`
+    INSERT INTO pgboss.job (
+      name, data,
+      retry_limit, retry_delay, retry_backoff,
+      expire_seconds
+    ) VALUES (
+      ${queueName},
+      ${JSON.stringify(data)}::jsonb,
+      ${retryLimit},
+      ${retryDelay},
+      ${retryBackoff},
+      ${expireInSeconds}
+    )
+    RETURNING id
+  `);
 
-  // Prevent multiple concurrent start() calls
-  if (!startPromise) {
-    startPromise = (async () => {
-      const instance = new PgBoss({
-        connectionString: process.env.DATABASE_URL!,
-      });
-      instance.on("error", (err: Error) => console.error("[pg-boss] Error:", err));
-      await instance.start();
-      boss = instance;
-      return instance;
-    })();
-  }
-
-  return startPromise;
+  return (result[0] as { id: string } | undefined)?.id ?? null;
 }

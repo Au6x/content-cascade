@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { cascadeJobs, contentSources } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { getBoss, QUEUE_CASCADE, CASCADE_JOB_OPTIONS } from "@/lib/queue/cascade";
+import { sendJob, QUEUE_CASCADE, CASCADE_JOB_OPTIONS } from "@/lib/queue/cascade";
 import { revalidatePath } from "next/cache";
 
 export async function triggerCascade(sourceId: string) {
@@ -35,9 +35,8 @@ export async function triggerCascade(sourceId: string) {
     })
     .returning();
 
-  // Enqueue to pg-boss
-  const boss = await getBoss();
-  await boss.send(QUEUE_CASCADE, { sourceId, jobId: job.id }, CASCADE_JOB_OPTIONS);
+  // Enqueue to pg-boss (lightweight raw SQL — no boss.start() needed)
+  await sendJob(QUEUE_CASCADE, { sourceId, jobId: job.id }, CASCADE_JOB_OPTIONS);
 
   revalidatePath(`/sources/${sourceId}`);
   revalidatePath("/sources");

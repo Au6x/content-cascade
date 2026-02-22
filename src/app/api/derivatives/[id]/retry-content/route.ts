@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { derivatives } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { getBoss, QUEUE_RETRY_CONTENT } from "@/lib/queue/cascade";
+import { sendJob, QUEUE_RETRY_CONTENT } from "@/lib/queue/cascade";
 import type { DerivativeContent, ContentExtraction } from "@/lib/db/schema";
 
 export async function POST(
@@ -45,9 +45,8 @@ export async function POST(
     })
     .where(eq(derivatives.id, id));
 
-  // Enqueue for worker processing
-  const boss = await getBoss();
-  await boss.send(QUEUE_RETRY_CONTENT, { derivativeId: id });
+  // Enqueue for worker processing (lightweight raw SQL)
+  await sendJob(QUEUE_RETRY_CONTENT, { derivativeId: id });
 
   return NextResponse.json({ status: "regenerating" });
 }
