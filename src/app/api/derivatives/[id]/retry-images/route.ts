@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { derivatives } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getVisualSpec } from "@/lib/gamma/specs";
-import { getCascadeQueue } from "@/lib/queue/cascade";
+import { getBoss, QUEUE_RETRY_IMAGES } from "@/lib/queue/cascade";
 import type { DerivativeContent } from "@/lib/db/schema";
 
 export async function POST(
@@ -41,8 +41,9 @@ export async function POST(
     })
     .where(eq(derivatives.id, id));
 
-  // Enqueue for worker processing instead of fire-and-forget
-  await getCascadeQueue().add("retry-images", { derivativeId: id });
+  // Enqueue for worker processing
+  const boss = await getBoss();
+  await boss.send(QUEUE_RETRY_IMAGES, { derivativeId: id });
 
   return NextResponse.json({ status: "generating" });
 }

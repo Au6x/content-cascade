@@ -15,7 +15,6 @@ import { getVisualSpec } from "../lib/gamma/specs";
 import { generateAndSaveVisuals } from "../lib/gamma/render";
 import type { GammaVisualSpec } from "../lib/gamma/types";
 import type { CascadeJobData, CascadeJobProgress } from "../lib/queue/cascade";
-import type { Job } from "bullmq";
 
 const CONCURRENCY_LIMIT = 5; // Max parallel Gemini text AI calls
 const IMAGE_CONCURRENCY = parseInt(process.env.IMAGE_CONCURRENCY ?? "3", 10);
@@ -65,9 +64,9 @@ class ImagePool {
 // ─── Main Pipeline ───────────────────────────────────────
 
 export async function processCascadeJob(
-  job: Job<CascadeJobData>
+  data: CascadeJobData
 ): Promise<void> {
-  const { sourceId, jobId } = job.data;
+  const { sourceId, jobId } = data;
 
   try {
     // 1. Load source and mark job as extracting
@@ -104,13 +103,6 @@ export async function processCascadeJob(
         .where(eq(derivatives.sourceId, sourceId));
     }
 
-    await reportProgress(job, {
-      stage: "extracting",
-      progress: 5,
-      completedDerivatives: 0,
-      totalDerivatives: 0,
-    });
-
     // 2. Extract content from article
     const extraction = await extractContent({
       title: source.title,
@@ -123,13 +115,6 @@ export async function processCascadeJob(
       .update(contentSources)
       .set({ extraction })
       .where(eq(contentSources.id, sourceId));
-
-    await reportProgress(job, {
-      stage: "generating",
-      progress: 15,
-      completedDerivatives: 0,
-      totalDerivatives: 0,
-    });
 
     // 3. Load enabled platforms + templates
     const enabledPlatforms = await db.query.platforms.findMany({
@@ -315,7 +300,7 @@ export async function processCascadeJob(
                   .where(eq(derivatives.id, derivativeId));
               } finally {
                 completedImageCount++;
-                await updateCombinedProgress(job, jobId, {
+                await updateCombinedProgress(jobId, {
                   completedText: completedTextCount,
                   totalDerivatives,
                   completedImages: completedImageCount,
@@ -345,7 +330,7 @@ export async function processCascadeJob(
       }
 
       // Update progress after each text batch
-      await updateCombinedProgress(job, jobId, {
+      await updateCombinedProgress(jobId, {
         completedText: completedTextCount,
         totalDerivatives,
         completedImages: completedImageCount,
@@ -387,14 +372,6 @@ export async function processCascadeJob(
       .set({ status: "completed", updatedAt: new Date() })
       .where(eq(contentSources.id, sourceId));
 
-    await reportProgress(job, {
-      stage: "completed",
-      progress: 100,
-      completedDerivatives: completedTextCount,
-      totalDerivatives,
-      completedImages: completedImageCount,
-      totalImages: totalImageTasks,
-    });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -413,14 +390,6 @@ export async function processCascadeJob(
       .set({ status: "error", updatedAt: new Date() })
       .where(eq(contentSources.id, sourceId));
 
-    await reportProgress(job, {
-      stage: "failed",
-      progress: 0,
-      completedDerivatives: 0,
-      totalDerivatives: 0,
-      error: errorMessage,
-    });
-
     throw error;
   }
 }
@@ -428,7 +397,6 @@ export async function processCascadeJob(
 // ─── Progress Helpers ────────────────────────────────────
 
 async function updateCombinedProgress(
-  job: Job<CascadeJobData>,
   jobId: string,
   state: {
     completedText: number;
@@ -468,20 +436,4 @@ async function updateCombinedProgress(
       progress,
     })
     .where(eq(cascadeJobs.id, jobId));
-
-  await reportProgress(job, {
-    stage,
-    progress,
-    completedDerivatives: completedText,
-    totalDerivatives,
-    completedImages,
-    totalImages,
-  });
-}
-
-async function reportProgress(
-  job: Job<CascadeJobData>,
-  progress: CascadeJobProgress
-): Promise<void> {
-  await job.updateProgress(progress);
 }

@@ -1,5 +1,7 @@
-import { Queue } from "bullmq";
-import { getRedisConnectionOptions } from "./connection";
+import { PgBoss } from "pg-boss";
+import type { SendOptions } from "pg-boss";
+
+// ─── Types (unchanged) ─────────────────────────────────
 
 export type CascadeJobData = {
   sourceId: string;
@@ -20,22 +22,41 @@ export type CascadeJobProgress = {
   error?: string;
 };
 
-let cascadeQueue: Queue | null = null;
+// ─── Queue Names ───────────────────────────────────────
 
-export function getCascadeQueue(): Queue {
-  if (!cascadeQueue) {
-    cascadeQueue = new Queue("cascade", {
-      connection: getRedisConnectionOptions(),
-      defaultJobOptions: {
-        attempts: 2,
-        backoff: {
-          type: "exponential",
-          delay: 5000,
-        },
-        removeOnComplete: { count: 100 },
-        removeOnFail: { count: 50 },
-      },
-    });
+export const QUEUE_CASCADE = "cascade";
+export const QUEUE_RETRY_IMAGES = "retry-images";
+export const QUEUE_RETRY_CONTENT = "retry-content";
+
+// ─── Default Job Options ───────────────────────────────
+
+export const CASCADE_JOB_OPTIONS: SendOptions = {
+  retryLimit: 2,
+  retryDelay: 5,
+  retryBackoff: true,
+  expireInSeconds: 3600,
+};
+
+// ─── pg-boss Singleton ─────────────────────────────────
+
+let boss: PgBoss | null = null;
+let startPromise: Promise<PgBoss> | null = null;
+
+export async function getBoss(): Promise<PgBoss> {
+  if (boss) return boss;
+
+  // Prevent multiple concurrent start() calls
+  if (!startPromise) {
+    startPromise = (async () => {
+      const instance = new PgBoss({
+        connectionString: process.env.DATABASE_URL!,
+      });
+      instance.on("error", (err: Error) => console.error("[pg-boss] Error:", err));
+      await instance.start();
+      boss = instance;
+      return instance;
+    })();
   }
-  return cascadeQueue;
+
+  return startPromise;
 }
