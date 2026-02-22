@@ -111,6 +111,20 @@ export function DerivativeImages({
     setRetryKeys((prev) => ({ ...prev, [index]: (prev[index] || 0) + 1 }));
   }, []);
 
+  // Auto-retry once on error before showing failed state
+  const handleImgError = useCallback((index: number) => {
+    setRetryKeys((prev) => {
+      const attempts = prev[index] || 0;
+      if (attempts < 1) {
+        // Auto-retry once by bumping the key
+        return { ...prev, [index]: attempts + 1 };
+      }
+      // Already retried — mark as failed
+      setFailedImages((f) => new Set(f).add(index));
+      return prev;
+    });
+  }, []);
+
   const imgSrc = useCallback(
     (url: string, index: number) => {
       const key = retryKeys[index];
@@ -277,10 +291,9 @@ export function DerivativeImages({
               <img
                 src={imgSrc(imageUrls[currentSlide], currentSlide)}
                 alt={slides?.[currentSlide]?.title || `Slide ${currentSlide + 1}`}
+                loading="lazy"
                 className="h-full w-full object-contain transition-opacity duration-300"
-                onError={() =>
-                  setFailedImages((prev) => new Set(prev).add(currentSlide))
-                }
+                onError={() => handleImgError(currentSlide)}
               />
               {failedOverlay(currentSlide)}
 
@@ -365,10 +378,9 @@ export function DerivativeImages({
               <img
                 src={imgSrc(url, i)}
                 alt={slides?.[i]?.title || `Variant ${i + 1}`}
+                loading="lazy"
                 className="aspect-video w-full object-cover"
-                onError={() =>
-                  setFailedImages((prev) => new Set(prev).add(i))
-                }
+                onError={() => handleImgError(i)}
               />
               {failedOverlay(i)}
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1 py-1">
@@ -396,8 +408,9 @@ export function DerivativeImages({
           <img
             src={imgSrc(imageUrls[0], 0)}
             alt="Generated visual"
+            loading="lazy"
             className="h-full w-full object-contain"
-            onError={() => setFailedImages((prev) => new Set(prev).add(0))}
+            onError={() => handleImgError(0)}
           />
           {failedOverlay(0)}
 
