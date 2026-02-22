@@ -58,8 +58,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Photo-centric LinkedIn listicle preview. Scene: dynamic professional workplace. The first few items overlaid on the photograph.",
-      { maxLen: 300 }
+      "Photo-centric LinkedIn listicle preview. Scene: dynamic professional workplace. The first few items overlaid on the photograph."
     ),
   },
   question_post: {
@@ -97,8 +96,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Photo-centric bold hot take. Scene: dramatic, intense setting. The statement overlaid in large impactful text on the photograph. Maximum attitude.",
-      { maxLen: 280 }
+      "Photo-centric bold hot take. Scene: dramatic, intense setting. The statement overlaid in large impactful text on the photograph. Maximum attitude."
     ),
   },
   stat_bomb: {
@@ -133,8 +131,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Photo-centric engagement bait. Scene: playful, eye-catching setting. Bold question text overlaid on the photograph.",
-      { maxLen: 280 }
+      "Photo-centric engagement bait. Scene: playful, eye-catching setting. Bold question text overlaid on the photograph."
     ),
   },
   x_article: {
@@ -194,8 +191,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Photo-centric punchy Instagram graphic. Scene: bold, striking setting. Short impactful text overlaid on the photograph.",
-      { maxLen: 120 }
+      "Photo-centric punchy Instagram graphic. Scene: bold, striking setting. Short impactful text overlaid on the photograph."
     ),
   },
 
@@ -337,8 +333,7 @@ const VISUAL_SPECS: Record<string, GammaVisualSpec> = {
     shouldGenerate: true,
     category: "social_graphic",
     buildRequest: makePostGraphicBuilder(
-      "Photo-centric Facebook quick-read. Scene: bold, simple setting. Short text overlaid on the photograph.",
-      { maxLen: 100 }
+      "Photo-centric Facebook quick-read. Scene: bold, simple setting. Short text overlaid on the photograph."
     ),
   },
   link_post: {

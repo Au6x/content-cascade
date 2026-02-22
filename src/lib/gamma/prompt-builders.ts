@@ -530,10 +530,7 @@ export function buildSocialGraphicRequest(
   content: DerivativeContent,
   context: VisualContext
 ): GammaGenerationRequest | null {
-  const displayText =
-    content.primaryContent?.slice(0, 120) ||
-    (content.visualDirection as string)?.slice(0, 120) ||
-    context.title;
+  const displayText = shortHeadline(content, context);
   if (!displayText) return null;
 
   const vi = context.variationIndex ?? 0;
@@ -564,18 +561,14 @@ export function makePostGraphicBuilder(
   options?: {
     dimensions?: import("./types").GammaDimension;
     format?: import("./types").GammaFormat;
-    maxLen?: number;
   }
 ) {
   return (
     content: DerivativeContent,
     context: VisualContext
   ): GammaGenerationRequest | null => {
-    const maxLen = options?.maxLen ?? 200;
-    const displayText =
-      content.primaryContent?.slice(0, maxLen) ||
-      content.headlines?.[0] ||
-      context.title;
+    // Short headline only — Gamma gives more photo space with less text
+    const displayText = shortHeadline(content, context);
     if (!displayText) return null;
 
     const vi = context.variationIndex ?? 0;
@@ -604,12 +597,8 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
     content: DerivativeContent,
     context: VisualContext
   ): GammaGenerationRequest | null => {
-    const tweets = content.tweets as string[] | undefined;
-    const hookText =
-      tweets?.[0] ||
-      content.primaryContent?.slice(0, 150) ||
-      content.headlines?.[0] ||
-      context.title;
+    // Short headline only — Gamma gives more photo space with less text
+    const hookText = shortHeadline(content, context);
     if (!hookText) return null;
 
     const vi = context.variationIndex ?? 0;
@@ -641,11 +630,8 @@ export function makeCoverFrameBuilder(
     content: DerivativeContent,
     context: VisualContext
   ): GammaGenerationRequest | null => {
-    const hookText =
-      (content.hook as string) ||
-      content.headlines?.[0] ||
-      content.primaryContent?.slice(0, 100) ||
-      context.title;
+    // Short headline only — Gamma gives more photo space with less text
+    const hookText = shortHeadline(content, context);
     if (!hookText) return null;
 
     const vi = context.variationIndex ?? 0;
@@ -704,14 +690,42 @@ function formatPillar(pillar: string): string {
 }
 
 /**
+ * Extract a SHORT headline from the derivative content (~80 chars max).
+ * Gamma allocates more photo space when inputText is short.
+ * Priority: headlines[0] → first sentence of primaryContent → title.
+ */
+function shortHeadline(
+  content: DerivativeContent,
+  context: VisualContext
+): string {
+  // Best: a pre-extracted headline
+  if (content.headlines?.[0]) {
+    return content.headlines[0].slice(0, 80);
+  }
+  // Next: first sentence of primaryContent
+  if (content.primaryContent) {
+    const firstSentence = content.primaryContent.split(/[.!?\n]/)[0]?.trim();
+    if (firstSentence && firstSentence.length <= 80) return firstSentence;
+    if (firstSentence) return firstSentence.slice(0, 80);
+  }
+  // Fallback: article title
+  return context.title.slice(0, 80);
+}
+
+/**
  * Append topic context to imageOptions.style so the AI image model
  * generates a scene relevant to the article, not a generic stock photo.
+ *
+ * IMPORTANT: Describe a SCENE WITH PEOPLE, not abstract technology.
+ * "scene related to: Smart Sensors" → abstract textures (BAD)
+ * "people in a professional setting discussing smart sensors" → real scene (GOOD)
  */
 function withTopicStyle(
   imgResult: ImageStyleResult,
   title: string
 ): ImageStyleResult {
-  const topicHint = `, scene related to: ${title.slice(0, 80)}`;
+  // Request a people-centric scene, with the topic as context rather than literal subject
+  const topicHint = `, showing real people in a professional setting, topic context: ${title.slice(0, 60)}`;
   return {
     ...imgResult,
     imageOptions: {
