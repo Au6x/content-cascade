@@ -281,6 +281,7 @@ export async function processCascadeJob(
                     ? {
                         name: brandProfile.name,
                         primaryColor: brandGuide.colors.primary,
+                        logoUrl: brandGuide.logoUrl,
                       }
                     : undefined;
 

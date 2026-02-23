@@ -81,6 +81,7 @@ export type BrandGuide = {
   };
   industry: string;
   targetAudience: string;
+  logoUrl?: string;
 };
 
 // ─── Tables ──────────────────────────────────────────────

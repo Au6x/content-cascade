@@ -70,6 +70,7 @@ export async function processRetryImages(data: RetryImagesJobData) {
         ? {
             name: brandProfile.name,
             primaryColor: brandGuide.colors.primary,
+            logoUrl: brandGuide.logoUrl,
           }
         : undefined;
 
