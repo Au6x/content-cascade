@@ -39,6 +39,17 @@ export type VisualContext = {
   title: string;
   pillar: string;
   variationIndex?: number;
+  brand?: {
+    name: string;
+    industry?: string;
+    colors?: {
+      primary: string;
+      secondary: string;
+      dark: string;
+      light: string;
+      accent?: string;
+    };
+  };
 };
 
 export type GammaVisualSpec = {

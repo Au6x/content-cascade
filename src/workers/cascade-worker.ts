@@ -261,6 +261,13 @@ export async function processCascadeJob(
                   title: source.title,
                   pillar: source.pillar,
                   variationIndex: task.variationIndex,
+                  brand: brandGuide
+                    ? {
+                        name: brandProfile?.name ?? "",
+                        industry: brandGuide.industry,
+                        colors: brandGuide.colors,
+                      }
+                    : undefined,
                 });
 
                 if (!request) {

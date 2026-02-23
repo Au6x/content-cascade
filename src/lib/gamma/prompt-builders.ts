@@ -183,6 +183,28 @@ function getMemeImageStyle(variationIndex: number): ImageStyleResult {
 const MEME_FONT_RULE =
   "TYPOGRAPHY RULE: Use MASSIVE font — text must occupy minimum 40% of the card height. Max 7 words per text section. Bold, high-contrast. No small text.";
 
+/**
+ * Build brand-specific instructions for Gamma image generation.
+ * Injects brand name, industry context, and color palette into
+ * additionalInstructions so every image reflects the brand identity.
+ */
+function brandInstructions(context: VisualContext): string {
+  if (!context.brand) return "";
+  const parts: string[] = [];
+  parts.push(`BRANDING: This content is for "${context.brand.name}".`);
+  if (context.brand.industry) {
+    parts.push(`Industry: ${context.brand.industry}. Show scenes and people relevant to this industry.`);
+  }
+  if (context.brand.colors) {
+    const c = context.brand.colors;
+    parts.push(
+      `Brand color palette: primary ${c.primary}, secondary ${c.secondary}, dark ${c.dark}, light ${c.light}${c.accent ? `, accent ${c.accent}` : ""}. Use these colors for text overlays, backgrounds, and accent elements.`
+    );
+  }
+  parts.push(`Include the brand name "${context.brand.name}" as a small watermark or logo text in the bottom corner of each card.`);
+  return parts.join(" ");
+}
+
 
 // ─── Carousels ──────────────────────────────────────────
 
@@ -200,6 +222,7 @@ export function buildCarouselOutlineRequest(
 
   const vi = context.variationIndex ?? 0;
   const imgStyle = getImageStyle(vi);
+  const brand = brandInstructions(context);
 
   return {
     inputText,
@@ -209,7 +232,7 @@ export function buildCarouselOutlineRequest(
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `${LAYOUT_INSTRUCTION} LinkedIn carousel. The image should show real people in a professional setting. First slide: bold title. Last slide: CTA.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} LinkedIn carousel. The image should show real people in a professional setting. First slide: bold title. Last slide: CTA. ${brand}`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "4x3" },
   };
@@ -229,6 +252,7 @@ export function buildCarouselEduRequest(
 
   const vi = context.variationIndex ?? 0;
   const imgStyle = getImageStyle(vi);
+  const brand = brandInstructions(context);
 
   return {
     inputText,
@@ -238,7 +262,7 @@ export function buildCarouselEduRequest(
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram educational carousel. The image should show real people in a relevant setting. First slide: bold title. Last slide: CTA.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram educational carousel. The image should show real people in a relevant setting. First slide: bold title. Last slide: CTA. ${brand}`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
   };
@@ -267,7 +291,7 @@ export function buildCarouselStoryRequest(
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram storytelling carousel. The image should show real people in a cinematic, atmospheric setting.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram storytelling carousel. The image should show real people in a cinematic, atmospheric setting. ${brandInstructions(context)}`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
   };
@@ -292,7 +316,7 @@ export function buildDrakeRequest(
     numCards: 1,
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `Drake meme comparison card. Split into two halves — top is rejected, bottom is approved. LAYOUT: Full-bleed background image filling the entire card. Strong visual contrast between reject and approve. ${MEME_FONT_RULE}`,
+    additionalInstructions: `Drake meme comparison card. Split into two halves — top is rejected, bottom is approved. LAYOUT: Full-bleed background image filling the entire card. Strong visual contrast between reject and approve. ${MEME_FONT_RULE} ${brandInstructions(context)}`,
     imageOptions: getMemeImageStyle(context.variationIndex ?? 0).imageOptions,
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
@@ -319,7 +343,7 @@ export function buildDistractedRequest(
     numCards: 1,
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `Distracted boyfriend meme layout. Three-column comparison. LAYOUT: Full-bleed background image. Left is old boring option, center is audience, right is exciting new thing. ${MEME_FONT_RULE}`,
+    additionalInstructions: `Distracted boyfriend meme layout. Three-column comparison. LAYOUT: Full-bleed background image. Left is old boring option, center is audience, right is exciting new thing. ${MEME_FONT_RULE} ${brandInstructions(context)}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
@@ -347,7 +371,7 @@ export function buildExpandingBrainRequest(
     numCards: 1,
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `Expanding brain meme. Four panels stacked vertically, escalating intensity. LAYOUT: Full-bleed photorealistic background that escalates from normal to cosmic. ${MEME_FONT_RULE}`,
+    additionalInstructions: `Expanding brain meme. Four panels stacked vertically, escalating intensity. LAYOUT: Full-bleed photorealistic background that escalates from normal to cosmic. ${MEME_FONT_RULE} ${brandInstructions(context)}`,
     imageOptions: { source: "aiGenerated", model: "imagen-4-pro", style: "photorealistic escalation, cosmic brain, dramatic volumetric lighting, neon plasma glow" },
     cardOptions: { dimensions: "4x5" },
     textOptions: { amount: "brief" },
@@ -371,7 +395,7 @@ export function buildThisIsFineRequest(
     numCards: 1,
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `"This is fine" meme card. LAYOUT: Full-bleed photorealistic background of a chaotic office/fire scene. Situation text at top, calm speech bubble at bottom. ${MEME_FONT_RULE}`,
+    additionalInstructions: `"This is fine" meme card. LAYOUT: Full-bleed photorealistic background of a chaotic office/fire scene. Situation text at top, calm speech bubble at bottom. ${MEME_FONT_RULE} ${brandInstructions(context)}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
@@ -397,7 +421,7 @@ export function buildChangeMyMindRequest(
     numCards: 1,
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `"Change my mind" meme card. LAYOUT: Full-bleed photorealistic background of a debate/outdoor scene. Large bold statement text overlaid. "CHANGE MY MIND" badge below. ${MEME_FONT_RULE}`,
+    additionalInstructions: `"Change my mind" meme card. LAYOUT: Full-bleed photorealistic background of a debate/outdoor scene. Large bold statement text overlaid. "CHANGE MY MIND" badge below. ${MEME_FONT_RULE} ${brandInstructions(context)}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
@@ -424,7 +448,7 @@ export function buildIsThisARequest(
     numCards: 1,
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `"Is this a...?" meme layout. LAYOUT: Full-bleed photorealistic background. Three labeled regions — person left, thing right, question at bottom. ${MEME_FONT_RULE}`,
+    additionalInstructions: `"Is this a...?" meme layout. LAYOUT: Full-bleed photorealistic background. Three labeled regions — person left, thing right, question at bottom. ${MEME_FONT_RULE} ${brandInstructions(context)}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "4x3" },
     textOptions: { amount: "brief" },
@@ -450,7 +474,7 @@ export function buildTwoButtonsRequest(
     numCards: 1,
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `Two buttons meme card. LAYOUT: Full-bleed photorealistic background of a stressed/sweating scene. Two large buttons side by side with VS badge. ${MEME_FONT_RULE}`,
+    additionalInstructions: `Two buttons meme card. LAYOUT: Full-bleed photorealistic background of a stressed/sweating scene. Two large buttons side by side with VS badge. ${MEME_FONT_RULE} ${brandInstructions(context)}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
@@ -476,7 +500,7 @@ export function buildCustomConceptRequest(
     numCards: 1,
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `Custom meme concept card. LAYOUT: Full-bleed photorealistic background relevant to the topic. Large bold centered text overlaid. Category: ${formatPillar(context.pillar)}. ${MEME_FONT_RULE}`,
+    additionalInstructions: `Custom meme concept card. LAYOUT: Full-bleed photorealistic background relevant to the topic. Large bold centered text overlaid. Category: ${formatPillar(context.pillar)}. ${MEME_FONT_RULE} ${brandInstructions(context)}`,
     imageOptions: memeImg.imageOptions,
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
@@ -521,7 +545,7 @@ export function buildThumbnailRequest(
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `${LAYOUT_INSTRUCTION} YouTube thumbnail concepts. The image should show real people in a dramatic, attention-grabbing setting. Bold uppercase headline text.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} YouTube thumbnail concepts. The image should show real people in a dramatic, attention-grabbing setting. Bold uppercase headline text. ${brandInstructions(context)}`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "16x9" },
     textOptions: { amount: "brief" },
@@ -547,7 +571,7 @@ export function buildSocialGraphicRequest(
     numCards: 1,
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. Instagram social graphic.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. Instagram social graphic. ${brandInstructions(context)}`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "1x1" },
     textOptions: { amount: "brief" },
@@ -577,6 +601,7 @@ export function makePostGraphicBuilder(
 
     const vi = context.variationIndex ?? 0;
     const imgStyle = withTopicStyle(getImageStyle(vi), context.title);
+    const brand = brandInstructions(context);
 
     return {
       inputText: displayText,
@@ -584,8 +609,8 @@ export function makePostGraphicBuilder(
       format: options?.format ?? "social",
       numCards: 1,
       exportAs: "pdf",
-    themeId: THEME_ID,
-      additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle}`,
+      themeId: THEME_ID,
+      additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle} ${brand}`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: options?.dimensions ?? "1x1" },
       textOptions: { amount: "brief" },
@@ -607,6 +632,7 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
 
     const vi = context.variationIndex ?? 0;
     const imgStyle = withTopicStyle(getPhotoRealisticStyle(vi), context.title);
+    const brand = brandInstructions(context);
 
     return {
       inputText: hookText,
@@ -614,8 +640,8 @@ export function makeThreadHeaderBuilder(baseStyle: string) {
       format: "social",
       numCards: 1,
       exportAs: "pdf",
-    themeId: THEME_ID,
-      additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle}`,
+      themeId: THEME_ID,
+      additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle} ${brand}`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: "4x3" },
       textOptions: { amount: "brief" },
@@ -640,6 +666,7 @@ export function makeCoverFrameBuilder(
 
     const vi = context.variationIndex ?? 0;
     const imgStyle = withTopicStyle(getPhotoRealisticStyle(vi), context.title);
+    const brand = brandInstructions(context);
 
     return {
       inputText: hookText,
@@ -647,8 +674,8 @@ export function makeCoverFrameBuilder(
       format: "social",
       numCards: 1,
       exportAs: "pdf",
-    themeId: THEME_ID,
-      additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle}`,
+      themeId: THEME_ID,
+      additionalInstructions: `${LAYOUT_INSTRUCTION} The image should show real people in a relevant setting. ${baseStyle} ${brand}`,
       imageOptions: imgStyle.imageOptions,
       cardOptions: { dimensions: options?.dimensions ?? "9x16" },
       textOptions: { amount: "brief" },
@@ -682,7 +709,7 @@ export function buildStorySeriesRequest(
     cardSplit: "inputTextBreaks",
     exportAs: "pdf",
     themeId: THEME_ID,
-    additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram Story series. The image should show real people in a cinematic setting.`,
+    additionalInstructions: `${LAYOUT_INSTRUCTION} Instagram Story series. The image should show real people in a cinematic setting. ${brandInstructions(context)}`,
     imageOptions: imgStyle.imageOptions,
     cardOptions: { dimensions: "9x16" },
     textOptions: { amount: "brief" },
