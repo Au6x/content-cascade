@@ -1,15 +1,17 @@
 "use server";
 
+import { cache } from "react";
 import { db } from "@/lib/db";
 import { contentSources, cascadeJobs, derivatives, brandProfiles } from "@/lib/db/schema";
 import { eq, desc, count, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-export async function listBrands() {
+// cache() deduplicates within a single request — layout + page won't double-query
+export const listBrands = cache(async () => {
   return db.select({ id: brandProfiles.id, name: brandProfiles.name, slug: brandProfiles.slug })
     .from(brandProfiles)
     .orderBy(brandProfiles.name);
-}
+});
 
 export async function createSource(data: {
   title: string;
