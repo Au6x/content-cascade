@@ -69,8 +69,7 @@ export async function processRetryImages(data: RetryImagesJobData) {
       brandProfile && brandGuide?.colors
         ? {
             name: brandProfile.name,
-            bgColor: brandGuide.colors.dark,
-            textColor: brandGuide.colors.light,
+            primaryColor: brandGuide.colors.primary,
           }
         : undefined;
 

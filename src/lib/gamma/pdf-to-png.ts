@@ -1,24 +1,23 @@
 import { execSync } from "child_process";
-import { writeFileSync, readFileSync, mkdirSync, readdirSync, rmSync } from "fs";
+import { writeFileSync, readFileSync, mkdirSync, readdirSync, rmSync, existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { uploadImage } from "@/lib/storage";
 
 export type BrandOverlay = {
   name: string;
-  bgColor: string;   // dark background color (hex)
-  textColor: string;  // light text color (hex)
+  primaryColor: string;  // brand primary hex
+  logoUrl?: string;      // optional logo image URL (PNG w/ transparency)
 };
 
 /**
  * Convert a PDF buffer to individual PNG images and upload to Supabase Storage.
- * Returns array of public URLs for the uploaded images.
  *
- * Uses PyMuPDF (via python3) for rendering instead of pdf-to-img,
- * because pdf-to-img (pdfjs) fails to render embedded photographic images
- * in Gamma's PDFs — producing abstract texture artifacts instead.
+ * Uses PyMuPDF (via python3) for rendering instead of pdf-to-img.
  *
- * If brandOverlay is provided, stamps the brand name at the bottom of each image.
+ * If brandOverlay is provided, adds professional branding to each image:
+ * - With logo: semi-transparent logo in bottom-right corner
+ * - Without logo: small pill badge with brand name in bottom-right corner
  */
 export async function convertPdfToImages(
   pdfBuffer: Buffer,
@@ -33,7 +32,6 @@ export async function convertPdfToImages(
 
   try {
     // PyMuPDF renders embedded images correctly (unlike pdfjs/pdf-to-img)
-    // Use % formatting instead of f-strings to avoid JS template literal conflicts
     execSync(
       `python3 -c "
 import fitz
@@ -45,42 +43,100 @@ for i, page in enumerate(doc):
       { timeout: 30000 }
     );
 
-    // Stamp brand name at bottom of each image
+    // Apply brand overlay
     if (brandOverlay) {
+      // Download logo if provided
+      let logoPath: string | null = null;
+      if (brandOverlay.logoUrl) {
+        logoPath = join(workDir, "brand-logo.png");
+        try {
+          execSync(`curl -sL "${brandOverlay.logoUrl}" -o "${logoPath}"`, { timeout: 10000 });
+          if (!existsSync(logoPath)) logoPath = null;
+        } catch {
+          logoPath = null;
+        }
+      }
+
       const safeName = brandOverlay.name.replace(/'/g, "\\'");
-      const bgHex = brandOverlay.bgColor;
-      const textHex = brandOverlay.textColor;
-      execSync(
-        `python3 -c "
-import glob
+      const brandColor = brandOverlay.primaryColor;
+      const hasLogo = logoPath ? "True" : "False";
+      const logoPathPy = logoPath ?? "";
+
+      // Write Python script to file to avoid shell escaping issues
+      const scriptPath = join(workDir, "brand.py");
+      writeFileSync(scriptPath, `
+import glob, os
 from PIL import Image, ImageDraw, ImageFont
+
+HAS_LOGO = ${hasLogo}
+LOGO_PATH = '${logoPathPy}'
+BRAND_NAME = '${safeName}'
+BRAND_COLOR = '${brandColor}'
+
+def hex_to_rgb(h):
+    h = h.lstrip('#')
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+def get_font(size):
+    for path in [
+        '/System/Library/Fonts/Helvetica.ttc',
+        '/System/Library/Fonts/SFNSText.ttf',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+    ]:
+        try:
+            return ImageFont.truetype(path, size)
+        except Exception:
+            continue
+    return ImageFont.load_default()
 
 files = sorted(glob.glob('${workDir}/page-*.png'))
 for f in files:
     img = Image.open(f).convert('RGBA')
     w, h = img.size
-    bar_h = max(int(h * 0.045), 28)
-    font_size = max(int(bar_h * 0.55), 12)
-    try:
-        font = ImageFont.truetype('/System/Library/Fonts/Helvetica.ttc', font_size)
-    except Exception:
-        try:
-            font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', font_size)
-        except Exception:
-            font = ImageFont.load_default()
-    overlay = Image.new('RGBA', (w, bar_h), '${bgHex}' + 'CC')
-    draw = ImageDraw.Draw(overlay)
-    bbox = draw.textbbox((0, 0), '${safeName}', font=font)
-    tw = bbox[2] - bbox[0]
-    th = bbox[3] - bbox[1]
-    tx = (w - tw) // 2
-    ty = (bar_h - th) // 2
-    draw.text((tx, ty), '${safeName}', fill='${textHex}', font=font)
-    img.paste(overlay, (0, h - bar_h), overlay)
+    margin = int(w * 0.03)
+
+    if HAS_LOGO and os.path.exists(LOGO_PATH):
+        # Logo mode: semi-transparent logo in bottom-right
+        logo = Image.open(LOGO_PATH).convert('RGBA')
+        logo_w = int(w * 0.18)
+        logo_h = int(logo.height * (logo_w / logo.width))
+        logo = logo.resize((logo_w, logo_h), Image.LANCZOS)
+        # Apply 75% opacity
+        alpha = logo.split()[3]
+        alpha = alpha.point(lambda p: int(p * 0.75))
+        logo.putalpha(alpha)
+        x = w - logo_w - margin
+        y = h - logo_h - margin
+        img.paste(logo, (x, y), logo)
+    else:
+        # Text badge mode: rounded pill in bottom-right corner
+        font_size = max(int(h * 0.018), 13)
+        font = get_font(font_size)
+        bbox = font.getbbox(BRAND_NAME)
+        tw = bbox[2] - bbox[0]
+        th = bbox[3] - bbox[1]
+        pad_x = int(tw * 0.4)
+        pad_y = int(th * 0.5)
+        badge_w = tw + pad_x * 2
+        badge_h = th + pad_y * 2
+        badge = Image.new('RGBA', (badge_w, badge_h), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(badge)
+        r = badge_h // 2
+        # Rounded rectangle background
+        rgb = hex_to_rgb(BRAND_COLOR)
+        fill = rgb + (190,)  # ~75% opacity
+        draw.rounded_rectangle([0, 0, badge_w, badge_h], radius=r, fill=fill)
+        # White text
+        draw.text((pad_x, pad_y - 1), BRAND_NAME, fill=(255, 255, 255, 240), font=font)
+        x = w - badge_w - margin
+        y = h - badge_h - margin
+        img.paste(badge, (x, y), badge)
+
     img.convert('RGB').save(f)
-"`,
-        { timeout: 30000 }
-      );
+`);
+
+      execSync(`python3 "${scriptPath}"`, { timeout: 60000 });
     }
 
     // Read generated PNGs and upload

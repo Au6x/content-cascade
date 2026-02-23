@@ -275,13 +275,12 @@ export async function processCascadeJob(
                   return;
                 }
 
-                // Build brand overlay for stamping company name at bottom of images
+                // Build brand overlay for bottom-right corner badge
                 const overlay: BrandOverlay | undefined =
                   brandProfile && brandGuide?.colors
                     ? {
                         name: brandProfile.name,
-                        bgColor: brandGuide.colors.dark,
-                        textColor: brandGuide.colors.light,
+                        primaryColor: brandGuide.colors.primary,
                       }
                     : undefined;
 
