@@ -63,16 +63,32 @@ export default async function SettingsPage() {
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {allBrands.map((brand) => (
+            {allBrands.map((brand) => {
+              const colors = brand.brandGuide?.colors;
+              const initials = brand.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+              return (
               <div
                 key={brand.id}
                 className="group overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm transition-shadow hover:shadow-md"
               >
+                {/* Color accent bar */}
+                {colors && (
+                  <div className="h-1" style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})` }} />
+                )}
                 {/* Brand header */}
                 <div className="flex items-start gap-3 px-4 py-3.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-teal-400/15 text-[11px] font-bold text-primary">
-                    {brand.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
-                  </div>
+                  {colors ? (
+                    <div
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold"
+                      style={{ background: `linear-gradient(135deg, ${colors.primary}22, ${colors.secondary}22)`, color: colors.primary }}
+                    >
+                      {initials}
+                    </div>
+                  ) : (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-teal-400/15 text-[11px] font-bold text-primary">
+                      {initials}
+                    </div>
+                  )}
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-semibold text-foreground">
@@ -99,6 +115,21 @@ export default async function SettingsPage() {
                   </div>
                 </div>
 
+                {/* Color palette */}
+                {colors && (
+                  <div className="flex items-center gap-1.5 border-t border-border/30 px-4 py-2.5">
+                    {[colors.primary, colors.secondary, colors.dark, colors.light, colors.accent].filter(Boolean).map((c, i) => (
+                      <div
+                        key={i}
+                        className="h-4 w-4 rounded-full ring-1 ring-black/10"
+                        style={{ backgroundColor: c }}
+                        title={c}
+                      />
+                    ))}
+                    <span className="ml-auto text-[10px] text-muted-foreground">{brand.brandGuide?.industry}</span>
+                  </div>
+                )}
+
                 {/* Tone + guidelines */}
                 <div className="border-t border-border/30 px-4 py-3">
                   {brand.tone && (
@@ -113,7 +144,8 @@ export default async function SettingsPage() {
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

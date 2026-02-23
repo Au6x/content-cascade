@@ -54,21 +54,42 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { brandId, brands, setBrandId } = useBrand();
+  const { brandId, brandName, brands, brandColors, setBrandId } = useBrand();
+
+  const activeBrand = brandId ? brands.find((b) => b.id === brandId) : null;
+  const brandInitials = activeBrand
+    ? activeBrand.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
+    : null;
 
   return (
     <aside className="flex h-screen w-[220px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-      {/* Logo */}
+      {/* Logo / Brand identity */}
       <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sidebar-primary to-teal-400 shadow-sm shadow-sidebar-primary/30">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
-            <path d="m22.54 12.43-1.42-.65-8.58 3.91a2 2 0 0 1-1.66 0L2.3 11.78l-1.42.65a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
-          </svg>
-        </div>
-        <span className="text-[13px] font-semibold tracking-tight text-sidebar-foreground">
-          Content Cascade
-        </span>
+        {activeBrand && brandColors ? (
+          <>
+            <div
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-bold text-white shadow-sm"
+              style={{ background: `linear-gradient(135deg, ${brandColors.primary}, ${brandColors.secondary})` }}
+            >
+              {brandInitials}
+            </div>
+            <span className="truncate text-[13px] font-semibold tracking-tight text-sidebar-foreground">
+              {activeBrand.name}
+            </span>
+          </>
+        ) : (
+          <>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sidebar-primary to-teal-400 shadow-sm shadow-sidebar-primary/30">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+                <path d="m22.54 12.43-1.42-.65-8.58 3.91a2 2 0 0 1-1.66 0L2.3 11.78l-1.42.65a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+              </svg>
+            </div>
+            <span className="text-[13px] font-semibold tracking-tight text-sidebar-foreground">
+              Content Cascade
+            </span>
+          </>
+        )}
       </div>
 
       {/* Brand selector */}

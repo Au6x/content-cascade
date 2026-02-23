@@ -9,7 +9,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let brands: { id: string; name: string; slug: string }[] = [];
+  let brands: Awaited<ReturnType<typeof listBrands>> = [];
   try {
     brands = await listBrands();
   } catch {

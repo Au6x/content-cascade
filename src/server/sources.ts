@@ -8,9 +8,22 @@ import { revalidatePath } from "next/cache";
 
 // cache() deduplicates within a single request — layout + page won't double-query
 export const listBrands = cache(async () => {
-  return db.select({ id: brandProfiles.id, name: brandProfiles.name, slug: brandProfiles.slug })
+  const rows = await db
+    .select({
+      id: brandProfiles.id,
+      name: brandProfiles.name,
+      slug: brandProfiles.slug,
+      brandGuide: brandProfiles.brandGuide,
+    })
     .from(brandProfiles)
     .orderBy(brandProfiles.name);
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    slug: r.slug,
+    colors: r.brandGuide?.colors ?? null,
+  }));
 });
 
 export async function createSource(data: {
