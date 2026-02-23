@@ -13,6 +13,7 @@ import { extractContent } from "../lib/ai/extract";
 import { generateDerivative } from "../lib/ai/generate";
 import { getVisualSpec } from "../lib/gamma/specs";
 import { generateAndSaveVisuals } from "../lib/gamma/render";
+import type { BrandOverlay } from "../lib/gamma/pdf-to-png";
 import type { GammaVisualSpec } from "../lib/gamma/types";
 import type { CascadeJobData, CascadeJobProgress } from "../lib/queue/cascade";
 
@@ -274,9 +275,20 @@ export async function processCascadeJob(
                   return;
                 }
 
+                // Build brand overlay for stamping company name at bottom of images
+                const overlay: BrandOverlay | undefined =
+                  brandProfile && brandGuide?.colors
+                    ? {
+                        name: brandProfile.name,
+                        bgColor: brandGuide.colors.dark,
+                        textColor: brandGuide.colors.light,
+                      }
+                    : undefined;
+
                 const allImageUrls = await generateAndSaveVisuals(
                   request,
-                  derivativeId
+                  derivativeId,
+                  overlay
                 );
 
                 const updatedContent: DerivativeContent = {

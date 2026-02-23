@@ -4,7 +4,7 @@ import {
   pollUntilComplete,
   downloadExportPdf,
 } from "./client";
-import { convertPdfToImages } from "./pdf-to-png";
+import { convertPdfToImages, type BrandOverlay } from "./pdf-to-png";
 
 /**
  * Generate visuals via Gamma and save as local PNGs.
@@ -15,7 +15,8 @@ import { convertPdfToImages } from "./pdf-to-png";
  */
 export async function generateAndSaveVisuals(
   request: GammaGenerationRequest,
-  derivativeId: string
+  derivativeId: string,
+  brandOverlay?: BrandOverlay
 ): Promise<string[]> {
   // 1. Submit generation to Gamma API
   const generationId = await createGeneration(request);
@@ -44,8 +45,8 @@ export async function generateAndSaveVisuals(
   // 3. Download the exported PDF
   const pdfBuffer = await downloadExportPdf(result.exportUrl);
 
-  // 4. Convert PDF pages to PNG images and save to disk
-  const imageUrls = await convertPdfToImages(pdfBuffer, derivativeId);
+  // 4. Convert PDF pages to PNG images, stamp brand, and upload
+  const imageUrls = await convertPdfToImages(pdfBuffer, derivativeId, brandOverlay);
 
   return imageUrls;
 }

@@ -4,6 +4,12 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { uploadImage } from "@/lib/storage";
 
+export type BrandOverlay = {
+  name: string;
+  bgColor: string;   // dark background color (hex)
+  textColor: string;  // light text color (hex)
+};
+
 /**
  * Convert a PDF buffer to individual PNG images and upload to Supabase Storage.
  * Returns array of public URLs for the uploaded images.
@@ -11,10 +17,13 @@ import { uploadImage } from "@/lib/storage";
  * Uses PyMuPDF (via python3) for rendering instead of pdf-to-img,
  * because pdf-to-img (pdfjs) fails to render embedded photographic images
  * in Gamma's PDFs — producing abstract texture artifacts instead.
+ *
+ * If brandOverlay is provided, stamps the brand name at the bottom of each image.
  */
 export async function convertPdfToImages(
   pdfBuffer: Buffer,
-  derivativeId: string
+  derivativeId: string,
+  brandOverlay?: BrandOverlay
 ): Promise<string[]> {
   const workDir = join(tmpdir(), `gamma-pdf-${derivativeId}`);
   const pdfPath = join(workDir, "input.pdf");
@@ -35,6 +44,44 @@ for i, page in enumerate(doc):
 "`,
       { timeout: 30000 }
     );
+
+    // Stamp brand name at bottom of each image
+    if (brandOverlay) {
+      const safeName = brandOverlay.name.replace(/'/g, "\\'");
+      const bgHex = brandOverlay.bgColor;
+      const textHex = brandOverlay.textColor;
+      execSync(
+        `python3 -c "
+import glob
+from PIL import Image, ImageDraw, ImageFont
+
+files = sorted(glob.glob('${workDir}/page-*.png'))
+for f in files:
+    img = Image.open(f).convert('RGBA')
+    w, h = img.size
+    bar_h = max(int(h * 0.045), 28)
+    font_size = max(int(bar_h * 0.55), 12)
+    try:
+        font = ImageFont.truetype('/System/Library/Fonts/Helvetica.ttc', font_size)
+    except Exception:
+        try:
+            font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', font_size)
+        except Exception:
+            font = ImageFont.load_default()
+    overlay = Image.new('RGBA', (w, bar_h), '${bgHex}' + 'CC')
+    draw = ImageDraw.Draw(overlay)
+    bbox = draw.textbbox((0, 0), '${safeName}', font=font)
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+    tx = (w - tw) // 2
+    ty = (bar_h - th) // 2
+    draw.text((tx, ty), '${safeName}', fill='${textHex}', font=font)
+    img.paste(overlay, (0, h - bar_h), overlay)
+    img.convert('RGB').save(f)
+"`,
+        { timeout: 30000 }
+      );
+    }
 
     // Read generated PNGs and upload
     const files = readdirSync(workDir)

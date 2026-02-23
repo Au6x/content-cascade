@@ -1,9 +1,10 @@
 import { eq } from "drizzle-orm";
 import { db } from "../lib/db";
 import { derivatives, brandProfiles } from "../lib/db/schema";
-import type { DerivativeContent, ContentExtraction } from "../lib/db/schema";
+import type { DerivativeContent, ContentExtraction, BrandGuide } from "../lib/db/schema";
 import { getVisualSpec } from "../lib/gamma/specs";
 import { generateAndSaveVisuals } from "../lib/gamma/render";
+import type { BrandOverlay } from "../lib/gamma/pdf-to-png";
 import { generateDerivative } from "../lib/ai/generate";
 import type { RetryImagesJobData, RetryContentJobData } from "../lib/queue/cascade";
 
@@ -29,9 +30,24 @@ export async function processRetryImages(data: RetryImagesJobData) {
   }
 
   try {
+    // Load brand profile for overlay and visual context
+    const brandProfile = derivative.source.brandId
+      ? await db.query.brandProfiles.findFirst({
+          where: eq(brandProfiles.id, derivative.source.brandId),
+        })
+      : null;
+    const brandGuide = brandProfile?.brandGuide as BrandGuide | null;
+
     const request = spec.buildRequest(content, {
       title: derivative.source.title,
       pillar: derivative.source.pillar,
+      brand: brandGuide
+        ? {
+            name: brandProfile?.name ?? "",
+            industry: brandGuide.industry,
+            colors: brandGuide.colors,
+          }
+        : undefined,
     });
 
     if (!request) {
@@ -49,9 +65,19 @@ export async function processRetryImages(data: RetryImagesJobData) {
       return;
     }
 
+    const overlay: BrandOverlay | undefined =
+      brandProfile && brandGuide?.colors
+        ? {
+            name: brandProfile.name,
+            bgColor: brandGuide.colors.dark,
+            textColor: brandGuide.colors.light,
+          }
+        : undefined;
+
     const imageUrls = await generateAndSaveVisuals(
       request as Parameters<typeof generateAndSaveVisuals>[0],
-      derivativeId
+      derivativeId,
+      overlay
     );
 
     await db
