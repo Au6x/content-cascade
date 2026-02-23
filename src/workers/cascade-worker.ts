@@ -180,6 +180,7 @@ export async function processCascadeJob(
       tone: brandProfile?.tone ?? "",
       vocabulary: brandProfile?.vocabulary ?? { preferred: [], avoided: [] },
     };
+    const brandGuide = brandProfile?.brandGuide ?? null;
 
     // 5. Generate text + images in PARALLEL
     //
@@ -217,6 +218,7 @@ export async function processCascadeJob(
               canonicalUrl: source.canonicalUrl || "",
             },
             brandVoice,
+            brandGuide,
             variationIndex: task.variationIndex,
             totalVariations: variationsCount,
           })

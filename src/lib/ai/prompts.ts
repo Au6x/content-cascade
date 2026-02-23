@@ -1,4 +1,4 @@
-import type { ContentExtraction } from "@/lib/db/schema";
+import type { ContentExtraction, BrandGuide } from "@/lib/db/schema";
 
 export const EXTRACTION_SYSTEM_PROMPT = `You are an expert content strategist specializing in social media content atomization. Your job is to analyze articles and extract structured data that can be used to generate platform-specific social media content.
 
@@ -249,7 +249,8 @@ export function buildGenerationSystemPrompt(
     voiceGuidelines: string;
     tone: string;
     vocabulary: { preferred: string[]; avoided: string[] };
-  }
+  },
+  brandGuide?: BrandGuide | null
 ): string {
   const parts = [
     `You are an elite ${platformName} content creator who understands what actually performs on this platform. Generate high-quality, platform-native content that feels authentic — not AI-generated. Every piece must stop the scroll, deliver real value, and drive engagement.
@@ -286,6 +287,27 @@ EVERY piece of content MUST include a compelling CTA in the "cta" field. Not gen
 Good CTAs: "Save this for your next strategy meeting 🔖", "Tag a colleague who needs to hear this", "Comment your biggest challenge with [topic]"
 BAD CTAs: "Let me know what you think", "Leave a comment", "Follow for more"
 The CTA should match the platform and content type AND the link placement strategy above.`);
+
+  // Brand identity — mission, vision, values, personality, audience
+  if (brandGuide) {
+    const brandParts = [`## Brand Identity`];
+    if (brandGuide.mission) brandParts.push(`**Mission:** ${brandGuide.mission}`);
+    if (brandGuide.vision) brandParts.push(`**Vision:** ${brandGuide.vision}`);
+    if (brandGuide.personality?.length) {
+      brandParts.push(`**Brand Personality:** ${brandGuide.personality.join(", ")}`);
+    }
+    if (brandGuide.values?.length) {
+      brandParts.push(`**Core Values:** ${brandGuide.values.join(", ")}`);
+    }
+    if (brandGuide.industry) brandParts.push(`**Industry:** ${brandGuide.industry}`);
+    if (brandGuide.targetAudience) {
+      brandParts.push(`**Target Audience:** ${brandGuide.targetAudience}`);
+    }
+    brandParts.push(
+      `\nAll content MUST reflect this brand identity. Align messaging with the mission, embody the brand personality traits, and speak directly to the target audience's needs and interests.`
+    );
+    parts.push(brandParts.join("\n"));
+  }
 
   if (brandVoice.voiceGuidelines) {
     parts.push(`## Brand Voice\n${brandVoice.voiceGuidelines}`);

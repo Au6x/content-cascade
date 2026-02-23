@@ -1,6 +1,6 @@
 import { generateJSON } from "./client";
 import { buildGenerationPrompt, buildGenerationSystemPrompt } from "./prompts";
-import type { ContentExtraction, DerivativeContent } from "@/lib/db/schema";
+import type { ContentExtraction, DerivativeContent, BrandGuide } from "@/lib/db/schema";
 
 export type GenerationInput = {
   template: {
@@ -22,6 +22,7 @@ export type GenerationInput = {
     tone: string;
     vocabulary: { preferred: string[]; avoided: string[] };
   };
+  brandGuide?: BrandGuide | null;
   variationIndex?: number;
   totalVariations?: number;
 };
@@ -64,7 +65,8 @@ This MUST be meaningfully different from any other variation. Use a different op
 
   const systemPrompt = buildGenerationSystemPrompt(
     input.platformName,
-    input.brandVoice
+    input.brandVoice,
+    input.brandGuide
   );
 
   const result = await generateJSON<Record<string, unknown>>(variationPrompt, {

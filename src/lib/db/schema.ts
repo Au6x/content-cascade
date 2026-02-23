@@ -58,6 +58,31 @@ export const funnelStageEnum = pgEnum("funnel_stage", [
   "bofu",
 ]);
 
+// ─── Brand Guide Type ───────────────────────────────────
+
+export type BrandGuide = {
+  mission: string;
+  vision: string;
+  personality: string[];
+  toneDescription: string;
+  values: string[];
+  colors: {
+    primary: string;
+    secondary: string;
+    tertiary?: string;
+    dark: string;
+    light: string;
+    accent?: string;
+  };
+  fonts: {
+    header: string;
+    body: string;
+    accent?: string;
+  };
+  industry: string;
+  targetAudience: string;
+};
+
 // ─── Tables ──────────────────────────────────────────────
 
 export const brandProfiles = pgTable("brand_profiles", {
@@ -71,6 +96,7 @@ export const brandProfiles = pgTable("brand_profiles", {
     avoided: string[];
   }>().default({ preferred: [], avoided: [] }),
   exampleContent: jsonb("example_content").$type<string[]>().default([]),
+  brandGuide: jsonb("brand_guide").$type<BrandGuide | null>().default(null),
   ghlLocationId: text("ghl_location_id"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
